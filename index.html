@@ -605,42 +605,65 @@
 
         async function syncPatientToGoogleSheet(patient) {
             try {
+                const payload = JSON.stringify({ action: 'UPSERT_PATIENT', patient });
                 const res = await fetch(CLOUD_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: 'UPSERT_PATIENT',
-                        patient: patient
-                    })
+                    body: payload,
+                    cache: 'no-store'
                 });
-
+                if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
-                if (!data.ok) throw new Error(data.error || 'Google Sheet sync failed');
-
+                if (!data.ok) throw new Error(data.error || 'Google sync failed');
                 cloudSyncReady = true;
-                console.log('Google Sheet sync OK');
-                return true;
+                return data;
             } catch (err) {
                 cloudSyncReady = false;
-                console.error('Google Sheet sync error:', err);
-                showToast('⚠️ تم الحفظ على الجهاز، لكن تعذر مزامنة Google Sheet.');
-                return false;
+                console.error('Google sync error:', err);
+                showToast('⚠️ تعذر الحفظ على Google: ' + (err.message || err));
+                return null;
             }
         }
 
         async function loadPatientsFromGoogleSheet() {
+            const localPatients = Array.isArray(patients) ? [...patients] : [];
+
             try {
                 const res = await fetch(CLOUD_API_URL + '?action=GET_PATIENTS&ts=' + Date.now(), {
                     method: 'GET',
                     cache: 'no-store'
                 });
 
+                if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 if (!data.ok || !Array.isArray(data.patients)) {
                     throw new Error(data.error || 'Invalid Google Sheet response');
                 }
 
-                patients = data.patients;
+                // First-time migration: if the Sheet is empty but this browser has
+                // patients saved locally, upload those local records to the Sheet.
+                if (data.patients.length === 0 && localPatients.length > 0) {
+                    console.log('Google Sheet is empty. Migrating ' + localPatients.length + ' local patients...');
+                    let uploaded = 0;
+                    for (const p of localPatients) {
+                        if (await syncPatientToGoogleSheet(p)) uploaded++;
+                    }
+
+                    const verifyRes = await fetch(CLOUD_API_URL + '?action=GET_PATIENTS&ts=' + Date.now(), {
+                        method: 'GET',
+                        cache: 'no-store'
+                    });
+                    if (!verifyRes.ok) throw new Error('HTTP ' + verifyRes.status);
+                    const verifyData = await verifyRes.json();
+                    if (!verifyData.ok || !Array.isArray(verifyData.patients)) {
+                        throw new Error(verifyData.error || 'Invalid Google Sheet response after migration');
+                    }
+                    patients = verifyData.patients;
+                    console.log('Migration complete: ' + uploaded + '/' + localPatients.length + ' uploaded.');
+                } else {
+                    patients = data.patients;
+                }
+
                 localStorage.setItem('clinic_patients', JSON.stringify(patients));
                 cloudSyncReady = true;
 
@@ -652,7 +675,49 @@
                 cloudSyncReady = false;
                 console.error('Google Sheet load error:', err);
                 // Keep local cache so the page still works if the network is temporarily unavailable.
+                renderNurseTodayList();
+                renderDoctorQueue();
+                renderPatientArchive();
             }
+        }
+
+        let cloudPollBusy = false;
+        async function refreshFromCloudSilently() {
+            if (cloudPollBusy || document.visibilityState === 'hidden') return;
+            cloudPollBusy = true;
+            try {
+                const res = await fetch(CLOUD_API_URL + '?action=GET_PATIENTS&ts=' + Date.now(), {
+                    method: 'GET', cache: 'no-store'
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                if (!data.ok || !Array.isArray(data.patients)) throw new Error(data.error || 'Invalid response');
+
+                const incoming = data.patients;
+                const oldSignature = JSON.stringify(patients);
+                const newSignature = JSON.stringify(incoming);
+                if (oldSignature !== newSignature) {
+                    patients = incoming;
+                    localStorage.setItem('clinic_patients', JSON.stringify(patients));
+                    renderNurseTodayList();
+                    renderDoctorQueue();
+                    renderPatientArchive();
+                    if (activePatientId) {
+                        const active = patients.find(x => String(x.id) === String(activePatientId));
+                        if (active) selectPatientForExam(active.id);
+                    }
+                }
+                cloudSyncReady = true;
+            } catch (err) {
+                console.debug('Realtime refresh skipped:', err);
+            } finally {
+                cloudPollBusy = false;
+            }
+        }
+
+        function startRealtimeSync() {
+            refreshFromCloudSilently();
+            setInterval(refreshFromCloudSilently, 2000);
         }
 
         function renderNurseTodayList() {
@@ -755,7 +820,7 @@
             container.appendChild(row);
         }
 
-        function saveExamRecord() {
+        async function saveExamRecord() {
             if (!activePatientId) return;
             const p = patients.find(x => x.id === activePatientId);
             if (!p) return;
@@ -781,20 +846,20 @@
             p.status = 'completed';
 
             saveData();
-            syncPatientToGoogleSheet(p);
+            const cloudResult = await syncPatientToGoogleSheet(p);
             renderDoctorQueue();
             renderNurseTodayList();
             renderPatientArchive();
-            showToast('تم حفظ الكشف ومزامنة البيانات مع شيت جوجل بنجاح!');
+            showToast(cloudResult ? 'تم حفظ الكشف والروشتة والتشخيص في Google بنجاح!' : 'تم حفظ الكشف محليًا، لكن تعذر المزامنة مع Google.');
         }
 
         /* تعديل دالة الطباعة لحذف الإيموجي وجعل كافة العناوين والنصوص باللون الأسود */
-        function triggerUnifiedPrint() {
+        async function triggerUnifiedPrint() {
             if (!activePatientId) {
                 showToast('⚠️ اختر المريض أولاً!');
                 return;
             }
-            saveExamRecord();
+            await saveExamRecord();
 
             const patient = patients.find(p => p.id === activePatientId);
             if (!patient) return;
@@ -885,6 +950,7 @@
             renderDoctorQueue();
             renderPatientArchive();
             await loadPatientsFromGoogleSheet();
+            startRealtimeSync();
         });
     </script>
 </body>
