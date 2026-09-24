@@ -54,7 +54,7 @@
                 overflow: hidden;
             }
 
-            /* صورة الروشتة: عنصر IMG حتى تظهر في Print Preview حتى لو Background Graphics مغلق */
+            /* صورة الروشتة الخلفية */
             .rx-bg {
                 position: absolute;
                 inset: 0;
@@ -65,49 +65,95 @@
                 display: block;
             }
 
-            .rx-field { position: absolute; color: #000; font-family: 'Cairo', Arial, sans-serif; direction: rtl; text-align: right; z-index: 2; }
+            .rx-field { 
+                position: absolute; 
+                color: #000; 
+                font-family: 'Cairo', Arial, sans-serif; 
+                direction: rtl; 
+                text-align: right; 
+                z-index: 2; 
+            }
+
+            /* رفع وتعديل مكان الاسم فوق النقاط وتكبير الخط */
             .rx-patient-name {
-                top: 63mm;
-                right: 27mm;
-                width: 82mm;
-                font-size: 18px;
-                line-height: 1.25;
+                top: 56mm;
+                right: 38mm;
+                width: 100mm;
+                font-size: 20px;
+                line-height: 1.2;
                 font-weight: 900;
             }
 
+            /* رفع وتعديل مكان السن فوق النقاط وتكبير الخط */
             .rx-age {
-                top: 63mm;
-                right: 147mm;
-                width: 58mm;
-                font-size: 17px;
-                line-height: 1.25;
+                top: 56mm;
+                right: 155mm;
+                width: 45mm;
+                font-size: 20px;
+                line-height: 1.2;
                 font-weight: 900;
             }
 
+            /* رفع وتعديل مكان التاريخ فوق النقاط وتكبير الخط */
             .rx-date {
-                top: 76mm;
-                right: 147mm;
-                width: 58mm;
-                font-size: 16px;
-                line-height: 1.25;
+                top: 68mm;
+                right: 155mm;
+                width: 45mm;
+                font-size: 19px;
+                line-height: 1.2;
                 font-weight: 900;
             }
 
+            /* تكبير خط منطقة الروشتة العامة */
             .rx-content-body {
                 position: absolute;
-                top: 103mm;
+                top: 98mm;
                 right: 18mm;
                 width: 174mm;
-                font-size: 16px;
-                line-height: 1.45;
+                font-size: 18px;
+                line-height: 1.5;
                 font-weight: 700;
+                color: #000000 !important;
             }
             
-            .rx-section-title { font-weight: 900; font-size: 16px; margin-top: 7mm; margin-bottom: 3mm; text-decoration: underline; color: #0f766e; }
-            .rx-med { margin-bottom: 4mm; }
-            .rx-med-name { font-weight: 900; font-size: 17px; line-height: 1.35; direction: ltr; text-align: left; }
-            .rx-med-detail { font-size: 14px; line-height: 1.4; font-weight: 800; color: #111; }
-            .rx-lab-item { font-weight: 900; font-size: 15px; line-height: 1.4; margin-bottom: 3mm; }
+            /* تعديل عنوان الأدوية والفحوصات: تحويل اللون للأسود وتكبير الخط */
+            .rx-section-title { 
+                font-weight: 900; 
+                font-size: 20px; 
+                margin-top: 6mm; 
+                margin-bottom: 3mm; 
+                text-decoration: underline; 
+                color: #000000 !important; 
+            }
+
+            .rx-med { margin-bottom: 5mm; }
+            
+            /* اسم الدواء باللون الأسود وحجم أكبر */
+            .rx-med-name { 
+                font-weight: 900; 
+                font-size: 20px; 
+                line-height: 1.35; 
+                direction: ltr; 
+                text-align: left; 
+                color: #000000 !important; 
+            }
+            
+            /* تفاصيل الدواء */
+            .rx-med-detail { 
+                font-size: 17px; 
+                line-height: 1.4; 
+                font-weight: 800; 
+                color: #000000 !important; 
+            }
+
+            /* التحاليل والأشعة */
+            .rx-lab-item { 
+                font-weight: 900; 
+                font-size: 18px; 
+                line-height: 1.4; 
+                margin-bottom: 3mm; 
+                color: #000000 !important; 
+            }
         }
     </style>
 </head>
@@ -488,7 +534,6 @@
             document.getElementById('mandatoryAuthOverlay').classList.remove('hidden');
         }
 
-        // تسجيل المريض أو زيادت زيارة المريض الموجود سابقاً تلقائياً
         function handleNurseSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('nurse_name').value.trim();
@@ -501,7 +546,6 @@
             const height = document.getElementById('nurse_height').value.trim();
             const temp = document.getElementById('nurse_temp').value.trim();
 
-            // التحقق مما إذا كان المريض موجوداً بنفس الاسم لتحديثه دون إنشاء سجل مكرر
             let existingPatient = patients.find(p => p.name.trim().toLowerCase() === name.toLowerCase());
 
             if (existingPatient) {
@@ -539,7 +583,6 @@
             e.target.reset();
         }
 
-        // تجديد كشف المريض من جدول الأرشيف
         function renewPatientExam(id) {
             let p = patients.find(x => x.id === id);
             if (!p) return;
@@ -556,7 +599,6 @@
             showToast(`تم تجديد الكشف للمريض (${p.name}) وأصبح في قائمة الانتظار (زيارة رقم ${p.visitsCount})`);
         }
 
-        // دالة المزامنة المباشرة مع شيت جوجل للتأكد من نزول المرضى فورياً في Excel
         function syncPatientToGoogleSheet(patient) {
             fetch(CLOUD_API_URL, {
                 method: 'POST',
@@ -656,7 +698,7 @@
             const row = document.createElement('div');
             row.className = "med-row grid grid-cols-12 gap-2 bg-slate-50 p-2 border rounded-xl items-center text-xs";
             row.innerHTML = `
-                <input type="text" value="${data.name || ''}" placeholder="اسم الدواء (danial)" class="med-name col-span-5 p-2 border rounded-lg font-en outline-none bg-white">
+                <input type="text" value="${data.name || ''}" placeholder="اسم الدواء" class="med-name col-span-5 p-2 border rounded-lg font-en outline-none bg-white">
                 <input type="text" value="${data.dose || ''}" placeholder="1 قرص" class="med-dose col-span-3 p-2 border rounded-lg outline-none bg-white text-center">
                 <input type="text" value="${data.duration || ''}" placeholder="كل 12 ساعة" class="med-duration col-span-3 p-2 border rounded-lg outline-none bg-white text-center">
                 <button type="button" onclick="this.closest('.med-row').remove()" class="col-span-1 text-rose-500 text-center"><i class="fa-solid fa-trash"></i></button>
@@ -708,6 +750,7 @@
             showToast('تم حفظ الكشف ومزامنة البيانات مع شيت جوجل بنجاح!');
         }
 
+        /* تعديل دالة الطباعة لحذف الإيموجي وجعل كافة العناوين والنصوص باللون الأسود */
         function triggerUnifiedPrint() {
             if (!activePatientId) {
                 showToast('⚠️ اختر المريض أولاً!');
@@ -725,7 +768,7 @@
             let contentHTML = '';
 
             if (patient.medications && patient.medications.length > 0) {
-                contentHTML += `<div class="rx-section-title">💊 الأدوية والعلاج الموصوف:</div>`;
+                contentHTML += `<div class="rx-section-title">الأدوية والعلاج الموصوف:</div>`;
                 patient.medications.forEach((m, idx) => {
                     contentHTML += `
                         <div class="rx-med">
@@ -736,7 +779,7 @@
             }
 
             if (patient.labs && patient.labs.length > 0) {
-                contentHTML += `<div class="rx-section-title">🔬 الفحوصات والتحاليل المطلوبة:</div>`;
+                contentHTML += `<div class="rx-section-title">الفحوصات والتحاليل المطلوبة:</div>`;
                 patient.labs.forEach(l => {
                     contentHTML += `<div class="rx-lab-item">• ${l.testName}</div>`;
                 });
