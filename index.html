@@ -1,3263 +1,3892 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة العيادة الطبية المتكامل</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+<title>نظام إدارة العيادة الطبية المتكامل</title>
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        cairo: ['Cairo', 'sans-serif'],
-                        en: ['Inter', 'sans-serif']
-                    },
-                    colors: {
-                        tealCustom: {
-                            50: '#e6f7f5',
-                            100: '#cceeeb',
-                            500: '#0d9488',
-                            600: '#0f766e',
-                            700: '#115e59',
-                            800: '#134e4a'
-                        }
-                    }
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet">
+
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            fontFamily: {
+                cairo: ['Cairo', 'sans-serif'],
+                en: ['Inter', 'sans-serif']
+            },
+            colors: {
+                tealCustom: {
+                    50: '#e6f7f5',
+                    100: '#cceeeb',
+                    500: '#0d9488',
+                    600: '#0f766e',
+                    700: '#115e59',
+                    800: '#134e4a'
                 }
             }
         }
-    </script>
+    }
+}
+</script>
 
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f1f5f9;
-        }
+<style>
 
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #f1f5f9;
+}
 
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
 
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
 
-        #prescription-template-print {
-            display: none;
-        }
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
 
-        @media print {
-            body * {
-                visibility: hidden !important;
-            }
+#prescription-template-print {
+    display: none;
+}
 
-            @page {
-                size: A4 portrait;
-                margin: 0;
-            }
 
-            .no-print,
-            button,
-            nav,
-            header,
-            aside,
-            .modal {
-                display: none !important;
-            }
+/* =====================================================
+   PRINT / PDF
+   ===================================================== */
 
-            #prescription-template-print {
-                display: block !important;
-                visibility: visible !important;
-                position: fixed !important;
-                inset: 0 !important;
-                width: 210mm !important;
-                height: 297mm !important;
-                background: transparent !important;
-            }
+@media print {
 
-            #prescription-template-print * {
-                visibility: visible !important;
-            }
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
 
-            .rx-paper {
-                position: relative;
-                width: 210mm;
-                height: 297mm;
-                overflow: hidden;
-            }
 
-            .rx-bg {
-                position: absolute;
-                inset: 0;
-                width: 210mm;
-                height: 297mm;
-                object-fit: fill;
-                z-index: 0;
-                display: block;
-            }
+    /*
+       الوضع الأول:
+       الطباعة على ورقة الروشتة الجاهزة
+       ==========================================
+       الخلفية تختفي تمامًا
+    */
 
-            .rx-field {
-                position: absolute;
-                color: #000;
-                font-family: 'Cairo', Arial, sans-serif;
-                direction: rtl;
-                text-align: right;
-                z-index: 2;
-            }
+    body.print-text-only * {
+        visibility: hidden !important;
+    }
 
-            .rx-patient-name {
-                top: 55mm;
-                right: 40mm;
-                width: 90mm;
-                font-size: 20px;
-                line-height: 1.2;
-                font-weight: 900;
-            }
+    body.print-text-only
+    #prescription-template-print {
+        display: block !important;
+        visibility: visible !important;
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        background: transparent !important;
+    }
 
-            .rx-age {
-                top: 55mm;
-                right: 160mm;
-                width: 40mm;
-                font-size: 20px;
-                line-height: 1.2;
-                font-weight: 900;
-            }
+    body.print-text-only
+    #prescription-template-print * {
+        visibility: visible !important;
+    }
 
-            .rx-date {
-                top: 65mm;
-                right: 160mm;
-                width: 40mm;
-                font-size: 30px;
-                line-height: 1.2;
-                font-weight: 900;
-            }
+    body.print-text-only
+    .rx-bg {
+        display: none !important;
+        visibility: hidden !important;
+    }
 
-            .rx-content-body {
-                position: absolute;
-                top: 98mm;
-                right: 18mm;
-                width: 174mm;
-                font-size: 18px;
-                line-height: 1.5;
-                font-weight: 700;
-                color: #000000 !important;
-            }
+    body.print-text-only
+    .rx-paper {
+        background: transparent !important;
+    }
 
-            .rx-section-title {
-                font-weight: 900;
-                font-size: 20px;
-                margin-top: 6mm;
-                margin-bottom: 3mm;
-                text-decoration: underline;
-                color: #000000 !important;
-            }
 
-            .rx-med {
-                margin-bottom: 5mm;
-            }
+    /*
+       الوضع الثاني:
+       Save as PDF
+       ==========================================
+       الخلفية تظهر
+    */
 
-            .rx-med-name {
-                font-weight: 900;
-                font-size: 20px;
-                line-height: 1.35;
-                direction: ltr;
-                text-align: left;
-                color: #000000 !important;
-            }
+    body.print-pdf * {
+        visibility: hidden !important;
+    }
 
-            .rx-med-detail {
-                font-size: 17px;
-                line-height: 1.4;
-                font-weight: 800;
-                color: #000000 !important;
-            }
+    body.print-pdf
+    #prescription-template-print {
+        display: block !important;
+        visibility: visible !important;
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        background: white !important;
+    }
 
-            .rx-lab-item {
-                font-weight: 900;
-                font-size: 18px;
-                line-height: 1.4;
-                margin-bottom: 3mm;
-                color: #000000 !important;
-            }
-        }
-    </style>
+    body.print-pdf
+    #prescription-template-print * {
+        visibility: visible !important;
+    }
+
+    body.print-pdf
+    .rx-bg {
+        display: block !important;
+        visibility: visible !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        object-fit: fill !important;
+    }
+
+
+    .no-print,
+    button,
+    nav,
+    header,
+    aside,
+    .modal {
+        display: none !important;
+    }
+
+
+    #prescription-template-print {
+        width: 210mm !important;
+        height: 297mm !important;
+    }
+
+
+    .rx-paper {
+        position: relative;
+        width: 210mm;
+        height: 297mm;
+        overflow: hidden;
+    }
+
+
+    .rx-bg {
+        position: absolute;
+        inset: 0;
+        width: 210mm;
+        height: 297mm;
+        object-fit: fill;
+        z-index: 0;
+    }
+
+
+    .rx-field {
+        position: absolute;
+        color: #000;
+        font-family: 'Cairo', Arial, sans-serif;
+        direction: rtl;
+        text-align: right;
+        z-index: 2;
+    }
+
+
+    .rx-patient-name {
+        top: 55mm;
+        right: 40mm;
+        width: 90mm;
+        font-size: 20px;
+        line-height: 1.2;
+        font-weight: 900;
+    }
+
+
+    .rx-age {
+        top: 55mm;
+        right: 160mm;
+        width: 40mm;
+        font-size: 20px;
+        line-height: 1.2;
+        font-weight: 900;
+    }
+
+
+    .rx-date {
+        top: 65mm;
+        right: 160mm;
+        width: 40mm;
+        font-size: 30px;
+        line-height: 1.2;
+        font-weight: 900;
+    }
+
+
+    .rx-content-body {
+        position: absolute;
+        top: 98mm;
+        right: 18mm;
+        width: 174mm;
+        font-size: 18px;
+        line-height: 1.5;
+        font-weight: 700;
+        color: #000 !important;
+    }
+
+
+    .rx-section-title {
+        font-weight: 900;
+        font-size: 20px;
+        margin-top: 6mm;
+        margin-bottom: 3mm;
+        text-decoration: underline;
+        color: #000 !important;
+    }
+
+
+    .rx-med {
+        margin-bottom: 5mm;
+    }
+
+
+    .rx-med-name {
+        font-weight: 900;
+        font-size: 20px;
+        line-height: 1.35;
+        direction: ltr;
+        text-align: left;
+        color: #000 !important;
+    }
+
+
+    .rx-med-detail {
+        font-size: 17px;
+        line-height: 1.4;
+        font-weight: 800;
+        color: #000 !important;
+    }
+
+
+    .rx-lab-item {
+        font-weight: 900;
+        font-size: 18px;
+        line-height: 1.4;
+        margin-bottom: 3mm;
+        color: #000 !important;
+    }
+}
+
+</style>
 </head>
+
 
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- LOGIN -->
-    <div id="mandatoryAuthOverlay"
-         class="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
 
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 border border-slate-200">
+<!-- =====================================================
+     LOGIN
+     ===================================================== -->
 
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
-                    <i class="fa-solid fa-user-lock"></i>
-                </div>
+<div id="mandatoryAuthOverlay"
+     class="fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4">
 
-                <h3 class="font-bold text-slate-800 text-xl">
-                    تسجيل الدخول للنظام
-                </h3>
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 border border-slate-200">
+
+        <div class="text-center mb-6">
+
+            <div class="w-14 h-14 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+                <i class="fa-solid fa-user-lock"></i>
             </div>
 
-            <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                        اسم المستخدم
-                    </label>
-
-                    <input
-                        type="text"
-                        id="login_username"
-                        required
-                        placeholder="اسم المستخدم"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-en outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                        كلمة المرور
-                    </label>
-
-                    <input
-                        type="password"
-                        id="login_password"
-                        required
-                        placeholder="••••••••"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-en outline-none">
-                </div>
-
-                <p id="loginErrorMsg"
-                   class="text-xs text-rose-500 hidden font-semibold text-center">
-                    خطأ في اسم المستخدم أو كلمة المرور!
-                </p>
-
-                <button
-                    type="submit"
-                    class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg">
-                    دخول
-                </button>
-
-            </form>
-        </div>
-    </div>
-
-
-    <!-- APPLICATION -->
-    <div id="appContainer" class="hidden flex-1 flex flex-col">
-
-        <!-- HEADER -->
-        <header class="bg-[#0f172a] text-white sticky top-0 z-40 shadow-md">
-
-            <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-                <div class="flex items-center gap-3">
-
-                    <div class="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                        <i class="fa-solid fa-user-doctor"></i>
-                    </div>
-
-                    <div>
-                        <h1 class="font-bold text-base text-white">
-                            عيادة د. مصطفى موسى هارون
-                        </h1>
-
-                        <p class="text-[11px] text-teal-300 font-medium">
-                            استشاري جراحة عامة
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <nav class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/50">
-
-                    <button
-                        id="tab-btn-nurse"
-                        onclick="switchTab('nurse')"
-                        class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:text-white flex items-center gap-2">
-
-                        <i class="fa-solid fa-user-nurse"></i>
-                        <span>استقبال الممرضة</span>
-
-                    </button>
-
-
-                    <button
-                        id="tab-btn-doctor"
-                        onclick="switchTab('doctor')"
-                        class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:text-white flex items-center gap-2">
-
-                        <i class="fa-solid fa-stethoscope"></i>
-                        <span>غرفة الكشف</span>
-
-                        <span
-                            id="queueBadge"
-                            class="bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-en">
-                            0
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        id="tab-btn-archive"
-                        onclick="switchTab('archive')"
-                        class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:text-white flex items-center gap-2">
-
-                        <i class="fa-solid fa-folder-open"></i>
-                        <span>أرشيف المرضى</span>
-
-                    </button>
-
-                </nav>
-
-
-                <div class="flex items-center gap-3">
-
-                    <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/50">
-
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-
-                        <span
-                            id="loggedInUserText"
-                            class="text-xs font-bold text-slate-200">
-                        </span>
-
-                    </div>
-
-                    <button
-                        onclick="handleLogout()"
-                        title="تسجيل الخروج"
-                        class="p-2 text-slate-400 hover:text-rose-400 transition">
-
-                        <i class="fa-solid fa-right-from-bracket text-base"></i>
-
-                    </button>
-
-                </div>
-
-            </div>
-        </header>
-
-
-        <!-- MAIN -->
-        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
-
-
-            <!-- NURSE VIEW -->
-            <section id="view-nurse"
-                     class="tab-content hidden space-y-6">
-
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-
-                    <!-- FORM -->
-                    <div class="lg:col-span-7 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-
-                        <div class="flex items-center justify-between mb-5">
-
-                            <div>
-                                <h2 class="font-bold text-slate-800 text-lg">
-                                    تسجيل مريض جديد / حجز كشف
-                                </h2>
-
-                                <p class="text-xs text-slate-500">
-                                    قم بإدخال بيانات المريض والقياسات الحيوية الأولية
-                                </p>
-                            </div>
-
-                            <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 font-bold text-lg">
-                                <i class="fa-solid fa-user-plus"></i>
-                            </div>
-
-                        </div>
-
-
-                        <form onsubmit="handleNurseSubmit(event)"
-                              class="space-y-4">
-
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                                <div>
-
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                                        اسم المريض الكامل *
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        id="nurse_name"
-                                        required
-                                        placeholder="مثال: أحمد محمد علي"
-                                        class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
-
-                                </div>
-
-
-                                <div>
-
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                                        رقم الهاتف
-                                    </label>
-
-                                    <input
-                                        type="tel"
-                                        id="nurse_phone"
-                                        placeholder="01000000000"
-                                        class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-en outline-none focus:border-teal-500 bg-slate-50">
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
-                                <div>
-
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                                        العمر (سنوات) *
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        id="nurse_age"
-                                        required
-                                        placeholder="35"
-                                        class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-en outline-none focus:border-teal-500 bg-slate-50">
-
-                                </div>
-
-
-                                <div>
-
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                                        النوع
-                                    </label>
-
-                                    <select
-                                        id="nurse_gender"
-                                        class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none bg-slate-50 focus:border-teal-500">
-
-                                        <option value="male">
-                                            ذكر
-                                        </option>
-
-                                        <option value="female">
-                                            أنثى
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-
-                                <div>
-
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                                        الوظيفة
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        id="nurse_job"
-                                        placeholder="مهندس / موظف"
-                                        class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
-
-                                </div>
-
-                            </div>
-
-
-                            <div>
-
-                                <label class="block text-xs font-bold text-slate-700 mb-1">
-                                    العنوان
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="nurse_address"
-                                    placeholder="المدينة / المنطقة"
-                                    class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
-
-                            </div>
-
-
-                            <!-- VITALS -->
-                            <div class="pt-2">
-
-                                <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-
-                                    <i class="fa-solid fa-heart-pulse text-rose-500"></i>
-
-                                    <span>
-                                        القياسات الحيوية (الأولية)
-                                    </span>
-
-                                </label>
-
-
-                                <div class="grid grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-
-                                    <div>
-
-                                        <span class="block text-[11px] text-slate-500 text-center mb-1">
-                                            الوزن (كجم)
-                                        </span>
-
-                                        <input
-                                            type="number"
-                                            id="nurse_weight"
-                                            placeholder="75"
-                                            class="w-full px-2 py-1.5 border rounded-lg text-xs font-en text-center outline-none bg-white">
-
-                                    </div>
-
-
-                                    <div>
-
-                                        <span class="block text-[11px] text-slate-500 text-center mb-1">
-                                            الطول (سم)
-                                        </span>
-
-                                        <input
-                                            type="number"
-                                            id="nurse_height"
-                                            placeholder="170"
-                                            class="w-full px-2 py-1.5 border rounded-lg text-xs font-en text-center outline-none bg-white">
-
-                                    </div>
-
-
-                                    <div>
-
-                                        <span class="block text-[11px] text-slate-500 text-center mb-1">
-                                            الحرارة (°C)
-                                        </span>
-
-                                        <input
-                                            type="text"
-                                            id="nurse_temp"
-                                            placeholder="37.0"
-                                            class="w-full px-2 py-1.5 border rounded-lg text-xs font-en text-center outline-none bg-white">
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            <button
-                                type="submit"
-                                class="w-full bg-[#0d9488] hover:bg-[#0f766e] text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
-
-                                <i class="fa-solid fa-paper-plane"></i>
-
-                                <span>
-                                    إرسال لغرفة كشف الطبيب
-                                </span>
-
-                            </button>
-
-                        </form>
-
-                    </div>
-
-
-                    <!-- NURSE LIST -->
-                    <div class="lg:col-span-5 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-
-                        <div class="flex items-center justify-between mb-4">
-
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-
-                                <i class="fa-solid fa-list-check text-teal-600"></i>
-
-                                <span>
-                                    قائمة كشوفات اليوم
-                                </span>
-
-                            </h3>
-
-                            <span
-                                id="nurseCountBadge"
-                                class="bg-teal-100 text-teal-800 font-bold text-xs px-2.5 py-0.5 rounded-full font-en">
-                                0
-                            </span>
-
-                        </div>
-
-                        <div
-                            id="nurseTodayList"
-                            class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- DOCTOR VIEW -->
-            <section id="view-doctor"
-                     class="tab-content hidden space-y-6">
-
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-
-                    <!-- QUEUE -->
-                    <div class="lg:col-span-4 bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-
-                        <div class="flex items-center justify-between mb-4">
-
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-
-                                <i class="fa-solid fa-users text-teal-600"></i>
-
-                                <span>
-                                    قائمة الانتظار للكشف
-                                </span>
-
-                            </h3>
-
-                            <span
-                                id="docQueueBadge"
-                                class="bg-teal-100 text-teal-800 text-xs font-bold px-2.5 py-0.5 rounded-full font-en">
-                                0
-                            </span>
-
-                        </div>
-
-                        <div
-                            id="doctorQueueList"
-                            class="space-y-2.5 max-h-[500px] overflow-y-auto">
-                        </div>
-
-                    </div>
-
-
-                    <!-- EXAM -->
-                    <div class="lg:col-span-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-
-
-                        <div
-                            id="noPatientSelectedState"
-                            class="text-center py-20 text-slate-400">
-
-                            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl text-slate-400">
-
-                                <i class="fa-solid fa-stethoscope"></i>
-
-                            </div>
-
-                            <p class="text-sm font-semibold text-slate-600">
-                                اختر مريضاً من قائمة الانتظار للبدء في الكشف
-                            </p>
-
-                        </div>
-
-
-                        <div
-                            id="activePatientForm"
-                            class="hidden space-y-5">
-
-
-                            <!-- PATIENT HEADER -->
-                            <div class="bg-[#0b132b] text-white p-4 rounded-2xl flex flex-wrap justify-between items-center shadow-lg border border-slate-800">
-
-                                <div>
-
-                                    <div class="flex items-center gap-2 mb-1">
-
-                                        <h3
-                                            id="doc_active_name"
-                                            class="font-bold text-lg text-white">
-                                            ---
-                                        </h3>
-
-                                        <span
-                                            id="doc_active_visit_tag"
-                                            class="bg-teal-500/20 text-teal-300 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                                            الزيارة رقم: 1
-                                        </span>
-
-                                    </div>
-
-
-                                    <p class="text-xs text-slate-300">
-
-                                        العمر:
-                                        <span
-                                            id="doc_active_age"
-                                            class="font-en font-bold">
-                                            --
-                                        </span>
-
-                                        سنة |
-
-                                        النوع:
-                                        <span id="doc_active_gender">
-                                            --
-                                        </span>
-
-                                        |
-
-                                        الهاتف:
-                                        <span
-                                            id="doc_active_phone"
-                                            class="font-en">
-                                            --
-                                        </span>
-
-                                    </p>
-
-                                </div>
-
-
-                                <div class="flex gap-2 text-xs font-en mt-2 sm:mt-0">
-
-                                    <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center">
-
-                                        <span class="block text-[9px] text-slate-400">
-                                            Weight
-                                        </span>
-
-                                        <span
-                                            id="doc_active_weight"
-                                            class="font-bold text-teal-400">
-                                            -- kg
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center">
-
-                                        <span class="block text-[9px] text-slate-400">
-                                            Height
-                                        </span>
-
-                                        <span
-                                            id="doc_active_height"
-                                            class="font-bold text-teal-400">
-                                            -- cm
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center">
-
-                                        <span class="block text-[9px] text-slate-400">
-                                            Temp
-                                        </span>
-
-                                        <span
-                                            id="doc_active_temp"
-                                            class="font-bold text-amber-400">
-                                            -- °C
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- HISTORY / DIAGNOSIS -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                                <div>
-
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                                        أعراض المريض والتاريخ المرضي
-                                    </label>
-
-                                    <textarea
-                                        id="doc_history"
-                                        rows="3"
-                                        class="w-full p-3 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
-                                    </textarea>
-
-                                </div>
-
-
-                                <div>
-
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                                        التشخيص الطبي (Diagnosis)
-                                    </label>
-
-                                    <textarea
-                                        id="doc_diagnosis"
-                                        rows="3"
-                                        class="w-full p-3 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50 font-en">
-                                    </textarea>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- MEDICATIONS -->
-                            <div class="border-t pt-4">
-
-                                <div class="flex justify-between items-center mb-3">
-
-                                    <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
-
-                                        <i class="fa-solid fa-pills text-teal-600"></i>
-
-                                        <span>
-                                            قائمة الأدوية الموصوفة (الروشتة)
-                                        </span>
-
-                                    </h4>
-
-
-                                    <button
-                                        type="button"
-                                        onclick="addMedicationRow()"
-                                        class="text-xs bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1">
-
-                                        <i class="fa-solid fa-plus"></i>
-                                        إضافة دواء
-
-                                    </button>
-
-                                </div>
-
-
-                                <div
-                                    id="medicationsContainer"
-                                    class="space-y-2 max-h-52 overflow-y-auto">
-                                </div>
-
-                            </div>
-
-
-                            <!-- LABS -->
-                            <div class="border-t pt-4">
-
-                                <div class="flex justify-between items-center mb-3">
-
-                                    <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
-
-                                        <i class="fa-solid fa-vials text-indigo-600"></i>
-
-                                        <span>
-                                            التحاليل والأشعة المطلوبة
-                                        </span>
-
-                                    </h4>
-
-
-                                    <button
-                                        type="button"
-                                        onclick="addLabRow()"
-                                        class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1">
-
-                                        <i class="fa-solid fa-plus"></i>
-                                        إضافة فحص
-
-                                    </button>
-
-                                </div>
-
-
-                                <div
-                                    id="labsContainer"
-                                    class="space-y-2 max-h-36 overflow-y-auto">
-                                </div>
-
-                            </div>
-
-
-                            <!-- ACTIONS -->
-                            <div class="border-t pt-4 flex flex-wrap justify-between items-center gap-3">
-
-                                <button
-                                    type="button"
-                                    onclick="saveExamRecord()"
-                                    class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition flex items-center gap-2">
-
-                                    <i class="fa-solid fa-floppy-disk"></i>
-
-                                    <span>
-                                        حفظ الكشف بالملف
-                                    </span>
-
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    onclick="triggerUnifiedPrint()"
-                                    class="bg-[#0d9488] hover:bg-[#0f766e] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-2">
-
-                                    <i class="fa-solid fa-print text-sm"></i>
-
-                                    <span>
-                                        طباعة الروشتة والأشعة الموحدة
-                                    </span>
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- ARCHIVE -->
-            <section id="view-archive"
-                     class="tab-content hidden space-y-6">
-
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-
-                    <div class="flex flex-wrap justify-between items-center mb-5 gap-3">
-
-                        <div>
-
-                            <h2 class="font-bold text-slate-800 text-base">
-                                أرشيف وجدول المرضى
-                            </h2>
-
-                            <p class="text-xs text-slate-500">
-                                سجل شامل لجميع المرضى الذين تم تسجيلهم بالعيادة وعدد الزيارات
-                            </p>
-
-                        </div>
-
-
-                        <div class="w-72">
-
-                            <input
-                                type="text"
-                                id="archiveSearchInput"
-                                oninput="filterArchiveTable()"
-                                placeholder="بحث باسم المريض أو الهاتف..."
-                                class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="overflow-x-auto">
-
-                        <table class="w-full text-right text-xs">
-
-                            <thead class="bg-slate-50 border-b text-slate-600">
-
-                                <tr>
-
-                                    <th class="p-3">
-                                        اسم المريض
-                                    </th>
-
-                                    <th class="p-3">
-                                        العمر / النوع
-                                    </th>
-
-                                    <th class="p-3">
-                                        عدد الزيارات
-                                    </th>
-
-                                    <th class="p-3">
-                                        الهاتف
-                                    </th>
-
-                                    <th class="p-3">
-                                        تاريخ آخر كشف
-                                    </th>
-
-                                    <th class="p-3">
-                                        التشخيص الحالي
-                                    </th>
-
-                                    <th class="p-3 text-center">
-                                        الإجراءات
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody
-                                id="patientArchiveTableBody"
-                                class="divide-y text-slate-700">
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-        </main>
-    </div>
-
-
-    <!-- PRINT TEMPLATE -->
-    <div id="prescription-template-print"
-         aria-hidden="true">
-
-        <div class="rx-paper">
-
-            <img
-                class="rx-bg"
-                src="Treatment_prescription.jpg"
-                alt="">
-
-            <div
-                class="rx-field rx-patient-name"
-                id="rx_patient_name">
-            </div>
-
-            <div
-                class="rx-field rx-age"
-                id="rx_patient_age">
-            </div>
-
-            <div
-                class="rx-field rx-date"
-                id="rx_date">
-            </div>
-
-            <div
-                class="rx-content-body"
-                id="rx_content_body">
-            </div>
+            <h3 class="font-bold text-slate-800 text-xl">
+                تسجيل الدخول للنظام
+            </h3>
 
         </div>
 
+
+        <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+
+            <div>
+
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                    اسم المستخدم
+                </label>
+
+                <input
+                    type="text"
+                    id="login_username"
+                    required
+                    placeholder="اسم المستخدم"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-en outline-none">
+
+            </div>
+
+
+            <div>
+
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                    كلمة المرور
+                </label>
+
+                <input
+                    type="password"
+                    id="login_password"
+                    required
+                    placeholder="••••••••"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-en outline-none">
+
+            </div>
+
+
+            <p id="loginErrorMsg"
+               class="text-xs text-rose-500 hidden font-semibold text-center">
+                خطأ في اسم المستخدم أو كلمة المرور!
+            </p>
+
+
+            <button
+                type="submit"
+                class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg">
+
+                دخول
+
+            </button>
+
+        </form>
+
     </div>
 
+</div>
 
-    <!-- ============================== -->
-    <!-- JAVASCRIPT -->
-    <!-- ============================== -->
 
-    <script>
 
-        /* ==========================================
-           GOOGLE APPS SCRIPT CONFIGURATION
-           ========================================== */
+<!-- =====================================================
+     APPLICATION
+     ===================================================== -->
 
-        const CLOUD_API_URL =
-            "https://script.google.com/macros/s/AKfycbzbZ4k8c4ZCBp0FsVIAf3mewOrcZs5c4q2PtL7DG17Y_nOzfJbGHgckK0cFkLbfJRnVSA/exec";
+<div id="appContainer" class="hidden flex-1 flex flex-col">
 
-        const APPS_SCRIPT_DEPLOYMENT_ID =
-            "AKfycbzbZ4k8c4ZCBp0FsVIAf3mewOrcZs5c4q2PtL7DG17Y_nOzfJbGHgckK0cFkLbfJRnVSA";
 
-        const APPS_SCRIPT_LIBRARY_URL =
-            "https://script.google.com/macros/library/d/1TuPko3nNMQlV1-JX_k9e0T9tk7XNywBE5vOfqm7oENdrC36Q9QrENdfV/2";
+<header class="bg-[#0f172a] text-white sticky top-0 z-40 shadow-md">
 
+<div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 
-        /* ==========================================
-           GLOBAL STATE
-           ========================================== */
 
-        let currentUser = null;
+<div class="flex items-center gap-3">
 
-        let patients =
-            JSON.parse(
-                localStorage.getItem('clinic_patients')
-            ) || [];
+<div class="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+<i class="fa-solid fa-user-doctor"></i>
+</div>
 
-        let activePatientId = null;
 
-        let cloudSyncReady = false;
+<div>
 
-        let cloudPollBusy = false;
+<h1 class="font-bold text-base text-white">
+عيادة د. مصطفى موسى هارون
+</h1>
 
+<p class="text-[11px] text-teal-300 font-medium">
+استشاري جراحة عامة
+</p>
 
-        /* ==========================================
-           TAB SWITCHING
-           ========================================== */
+</div>
 
-        function switchTab(tabId) {
+</div>
 
-            if (
-                tabId === 'doctor' &&
-                (!currentUser ||
-                 currentUser.role !== 'doctor')
-            ) {
 
-                showToast(
-                    '❌ عذراً! الوصول لغرفة الكشف للطبيب فقط.'
-                );
 
-                return;
-            }
+<nav class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/50">
 
 
-            document
-                .querySelectorAll('.tab-content')
-                .forEach(el =>
-                    el.classList.add('hidden')
-                );
+<button
+id="tab-btn-nurse"
+onclick="switchTab('nurse')"
+class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:text-white flex items-center gap-2">
 
+<i class="fa-solid fa-user-nurse"></i>
+<span>استقبال الممرضة</span>
 
-            document
-                .querySelectorAll('.tab-btn')
-                .forEach(btn =>
-                    btn.classList.remove(
-                        'bg-teal-600',
-                        'text-white'
-                    )
-                );
+</button>
 
 
-            const view =
-                document.getElementById(
-                    `view-${tabId}`
-                );
+<button
+id="tab-btn-doctor"
+onclick="switchTab('doctor')"
+class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:text-white flex items-center gap-2">
 
-            if (view) {
-                view.classList.remove('hidden');
-            }
+<i class="fa-solid fa-stethoscope"></i>
+<span>غرفة الكشف</span>
 
+<span
+id="queueBadge"
+class="bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-en">
+0
+</span>
 
-            const activeBtn =
-                document.getElementById(
-                    `tab-btn-${tabId}`
-                );
+</button>
 
-            if (activeBtn) {
-                activeBtn.classList.add(
-                    'bg-teal-600',
-                    'text-white'
-                );
-            }
-        }
 
+<button
+id="tab-btn-archive"
+onclick="switchTab('archive')"
+class="tab-btn px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:text-white flex items-center gap-2">
 
-        /* ==========================================
-           LOGIN
-           ========================================== */
+<i class="fa-solid fa-folder-open"></i>
+<span>أرشيف المرضى</span>
 
-        function handleLoginSubmit(e) {
+</button>
 
-            e.preventDefault();
+</nav>
 
-            const u =
-                document
-                    .getElementById('login_username')
-                    .value
-                    .trim();
 
-            const p =
-                document
-                    .getElementById('login_password')
-                    .value
-                    .trim();
 
+<div class="flex items-center gap-3">
 
-            if (
-                (u === 'Mostafa Mousa' ||
-                 u === 'doctor') &&
-                (p === 'Dr.M0$tafa_Mousa' ||
-                 p === '123456')
-            ) {
+<div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/50">
 
-                currentUser = {
-                    username: u,
-                    role: 'doctor',
-                    name: 'د. مصطفى موسى هارون'
-                };
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
 
-            }
+<span id="loggedInUserText"
+      class="text-xs font-bold text-slate-200">
+</span>
 
-            else if (
-                (u === '$Nurse@' ||
-                 u === 'nurse') &&
-                (p === '_Nurse_CliniC$200' ||
-                 p === '123456')
-            ) {
+</div>
 
-                currentUser = {
-                    username: u,
-                    role: 'nurse',
-                    name: 'استقبال الممرضة'
-                };
 
-            }
+<button
+onclick="handleLogout()"
+title="تسجيل الخروج"
+class="p-2 text-slate-400 hover:text-rose-400 transition">
 
-            else {
+<i class="fa-solid fa-right-from-bracket text-base"></i>
 
-                document
-                    .getElementById('loginErrorMsg')
-                    .classList.remove('hidden');
+</button>
 
-                return;
-            }
+</div>
 
+</div>
+</header>
 
-            document
-                .getElementById('loginErrorMsg')
-                .classList.add('hidden');
 
 
-            document
-                .getElementById('mandatoryAuthOverlay')
-                .classList.add('hidden');
+<main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
 
 
-            document
-                .getElementById('appContainer')
-                .classList.remove('hidden');
+<!-- =====================================================
+     NURSE
+     ===================================================== -->
 
+<section id="view-nurse"
+         class="tab-content hidden space-y-6">
 
-            document
-                .getElementById('loggedInUserText')
-                .innerText =
-                currentUser.name;
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
 
-            switchTab(
-                currentUser.role === 'doctor'
-                    ? 'doctor'
-                    : 'nurse'
-            );
-        }
+<div class="lg:col-span-7 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
 
+<div class="flex items-center justify-between mb-5">
 
-        /* ==========================================
-           LOGOUT
-           ========================================== */
+<div>
 
-        function handleLogout() {
+<h2 class="font-bold text-slate-800 text-lg">
+تسجيل مريض جديد / حجز كشف
+</h2>
 
-            currentUser = null;
+<p class="text-xs text-slate-500">
+قم بإدخال بيانات المريض والقياسات الحيوية الأولية
+</p>
 
-            document
-                .getElementById('appContainer')
-                .classList.add('hidden');
+</div>
 
-            document
-                .getElementById('mandatoryAuthOverlay')
-                .classList.remove('hidden');
 
-            document
-                .getElementById('login_username')
-                .value = '';
+<div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 font-bold text-lg">
+<i class="fa-solid fa-user-plus"></i>
+</div>
 
-            document
-                .getElementById('login_password')
-                .value = '';
-        }
+</div>
 
 
-        /* ==========================================
-           NURSE SUBMIT
-           ========================================== */
 
-        async function handleNurseSubmit(e) {
+<form onsubmit="handleNurseSubmit(event)"
+      class="space-y-4">
 
-            e.preventDefault();
 
-            const form = e.target;
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            const submitButton =
-                form.querySelector(
-                    'button[type="submit"]'
-                );
+<div>
 
-            const originalButtonHTML =
-                submitButton
-                    ? submitButton.innerHTML
-                    : '';
+<label class="block text-xs font-bold text-slate-700 mb-1">
+اسم المريض الكامل *
+</label>
 
+<input
+type="text"
+id="nurse_name"
+required
+placeholder="مثال: أحمد محمد علي"
+class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
 
-            if (submitButton) {
+</div>
 
-                submitButton.disabled = true;
 
-                submitButton.innerHTML = `
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>جاري الحفظ...</span>
-                `;
-            }
+<div>
 
+<label class="block text-xs font-bold text-slate-700 mb-1">
+رقم الهاتف
+</label>
 
-            try {
+<input
+type="tel"
+id="nurse_phone"
+placeholder="01000000000"
+class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-en outline-none focus:border-teal-500 bg-slate-50">
 
-                const name =
-                    document
-                        .getElementById('nurse_name')
-                        .value
-                        .trim();
+</div>
 
-                const age =
-                    document
-                        .getElementById('nurse_age')
-                        .value
-                        .trim();
+</div>
 
-                const phone =
-                    document
-                        .getElementById('nurse_phone')
-                        .value
-                        .trim();
 
-                const gender =
-                    document
-                        .getElementById('nurse_gender')
-                        .value;
 
-                const job =
-                    document
-                        .getElementById('nurse_job')
-                        .value
-                        .trim();
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                const address =
-                    document
-                        .getElementById('nurse_address')
-                        .value
-                        .trim();
+<div>
 
-                const weight =
-                    document
-                        .getElementById('nurse_weight')
-                        .value
-                        .trim();
+<label class="block text-xs font-bold text-slate-700 mb-1">
+العمر (سنوات) *
+</label>
 
-                const height =
-                    document
-                        .getElementById('nurse_height')
-                        .value
-                        .trim();
+<input
+type="number"
+id="nurse_age"
+required
+placeholder="35"
+class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-en outline-none focus:border-teal-500 bg-slate-50">
 
-                const temp =
-                    document
-                        .getElementById('nurse_temp')
-                        .value
-                        .trim();
+</div>
 
 
-                if (!name || !age) {
+<div>
 
-                    showToast(
-                        '⚠️ برجاء إدخال اسم المريض والعمر.'
-                    );
+<label class="block text-xs font-bold text-slate-700 mb-1">
+النوع
+</label>
 
-                    return;
-                }
+<select
+id="nurse_gender"
+class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none bg-slate-50 focus:border-teal-500">
 
+<option value="male">ذكر</option>
+<option value="female">أنثى</option>
 
-                /*
-                 * البحث عن المريض الموجود.
-                 *
-                 * حاليًا الاسم هو مفتاح البحث.
-                 */
-                let existingPatient =
-                    patients.find(
-                        p =>
-                            String(p.name || '')
-                                .trim()
-                                .toLowerCase() ===
-                            name.toLowerCase()
-                    );
+</select>
 
+</div>
 
-                let cloudResult = null;
 
+<div>
 
-                /* ==================================
-                   EXISTING PATIENT
-                   ================================== */
+<label class="block text-xs font-bold text-slate-700 mb-1">
+الوظيفة
+</label>
 
-                if (existingPatient) {
+<input
+type="text"
+id="nurse_job"
+placeholder="مهندس / موظف"
+class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
 
-                    existingPatient.visitsCount =
-                        (Number(
-                            existingPatient.visitsCount
-                        ) || 1) + 1;
+</div>
 
+</div>
 
-                    existingPatient.status =
-                        'waiting';
 
 
-                    existingPatient.dateFormatted =
-                        new Date()
-                            .toLocaleDateString('ar-EG');
+<div>
 
+<label class="block text-xs font-bold text-slate-700 mb-1">
+العنوان
+</label>
 
-                    if (phone) {
-                        existingPatient.phone = phone;
-                    }
+<input
+type="text"
+id="nurse_address"
+placeholder="المدينة / المنطقة"
+class="w-full px-3.5 py-2.5 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
 
-                    if (age) {
-                        existingPatient.age = age;
-                    }
+</div>
 
-                    if (gender) {
-                        existingPatient.gender = gender;
-                    }
 
-                    if (job) {
-                        existingPatient.job = job;
-                    }
 
-                    if (address) {
-                        existingPatient.address = address;
-                    }
+<div class="pt-2">
 
+<label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
 
-                    existingPatient.vitals = {
-                        weight: weight,
-                        height: height,
-                        temp: temp
-                    };
+<i class="fa-solid fa-heart-pulse text-rose-500"></i>
 
+<span>القياسات الحيوية (الأولية)</span>
 
-                    /*
-                     * حفظ محلي
-                     */
-                    saveData();
+</label>
 
 
-                    /*
-                     * حفظ Google
-                     */
-                    cloudResult =
-                        await syncPatientToGoogleSheet(
-                            existingPatient
-                        );
+<div class="grid grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
 
 
-                    renderNurseTodayList();
-                    renderDoctorQueue();
-                    renderPatientArchive();
+<div>
 
+<span class="block text-[11px] text-slate-500 text-center mb-1">
+الوزن (كجم)
+</span>
 
-                    if (cloudResult) {
+<input
+type="number"
+id="nurse_weight"
+placeholder="75"
+class="w-full px-2 py-1.5 border rounded-lg text-xs font-en text-center outline-none bg-white">
 
-                        showToast(
-                            `✅ تم تحديث المريض (${name}) وحفظ الزيارة رقم ${existingPatient.visitsCount} في Google Sheet.`
-                        );
+</div>
 
-                    } else {
 
-                        showToast(
-                            `⚠️ تم حفظ المريض على الموقع، لكن تعذر حفظه في Google Sheet.`
-                        );
-                    }
+<div>
 
-                }
+<span class="block text-[11px] text-slate-500 text-center mb-1">
+الطول (سم)
+</span>
 
+<input
+type="number"
+id="nurse_height"
+placeholder="170"
+class="w-full px-2 py-1.5 border rounded-lg text-xs font-en text-center outline-none bg-white">
 
-                /* ==================================
-                   NEW PATIENT
-                   ================================== */
+</div>
 
-                else {
 
-                    const newPatient = {
+<div>
 
-                        id: Date.now(),
+<span class="block text-[11px] text-slate-500 text-center mb-1">
+الحرارة (°C)
+</span>
 
-                        dateFormatted:
-                            new Date()
-                                .toLocaleDateString('ar-EG'),
+<input
+type="text"
+id="nurse_temp"
+placeholder="37.0"
+class="w-full px-2 py-1.5 border rounded-lg text-xs font-en text-center outline-none bg-white">
 
-                        status: 'waiting',
+</div>
 
-                        visitsCount: 1,
+</div>
 
-                        name: name,
+</div>
 
-                        age: age,
 
-                        gender: gender,
 
-                        phone: phone,
+<button
+type="submit"
+class="w-full bg-[#0d9488] hover:bg-[#0f766e] text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
 
-                        job: job,
+<i class="fa-solid fa-paper-plane"></i>
 
-                        address: address,
+<span>إرسال لغرفة كشف الطبيب</span>
 
-                        vitals: {
-                            weight: weight,
-                            height: height,
-                            temp: temp
-                        },
+</button>
 
-                        history: '',
+</form>
 
-                        diagnosis: '',
+</div>
 
-                        medications: [],
 
-                        labs: []
-                    };
 
+<div class="lg:col-span-5 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
 
-                    /*
-                     * حفظ محلي
-                     */
-                    patients.unshift(newPatient);
+<div class="flex items-center justify-between mb-4">
 
-                    saveData();
+<h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
 
+<i class="fa-solid fa-list-check text-teal-600"></i>
 
-                    /*
-                     * حفظ Google
-                     */
-                    cloudResult =
-                        await syncPatientToGoogleSheet(
-                            newPatient
-                        );
+<span>قائمة كشوفات اليوم</span>
 
+</h3>
 
-                    renderNurseTodayList();
-                    renderDoctorQueue();
-                    renderPatientArchive();
 
+<span
+id="nurseCountBadge"
+class="bg-teal-100 text-teal-800 font-bold text-xs px-2.5 py-0.5 rounded-full font-en">
+0
+</span>
 
-                    if (cloudResult) {
+</div>
 
-                        showToast(
-                            `✅ تم تسجيل المريض (${name}) وحفظ بياناته في Google Sheet.`
-                        );
 
-                    } else {
+<div
+id="nurseTodayList"
+class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+</div>
 
-                        showToast(
-                            `⚠️ تم تسجيل المريض على الموقع، لكن تعذر حفظه في Google Sheet.`
-                        );
-                    }
-                }
+</div>
 
+</div>
 
-                form.reset();
+</section>
 
-            }
 
-            catch (err) {
 
-                console.error(
-                    'Nurse submit error:',
-                    err
-                );
+<!-- =====================================================
+     DOCTOR
+     ===================================================== -->
 
-                showToast(
-                    '⚠️ حدث خطأ أثناء تسجيل المريض: ' +
-                    (err.message || err)
-                );
+<section id="view-doctor"
+         class="tab-content hidden space-y-6">
 
-            }
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            finally {
 
-                if (submitButton) {
+<div class="lg:col-span-4 bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
 
-                    submitButton.disabled = false;
+<div class="flex items-center justify-between mb-4">
 
-                    submitButton.innerHTML =
-                        originalButtonHTML;
-                }
-            }
-        }
+<h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
 
+<i class="fa-solid fa-users text-teal-600"></i>
 
-        /* ==========================================
-           RENEW PATIENT EXAM
-           ========================================== */
+<span>قائمة الانتظار للكشف</span>
 
-        async function renewPatientExam(id) {
+</h3>
 
-            const p =
-                patients.find(
-                    x =>
-                        String(x.id) ===
-                        String(id)
-                );
 
+<span
+id="docQueueBadge"
+class="bg-teal-100 text-teal-800 text-xs font-bold px-2.5 py-0.5 rounded-full font-en">
+0
+</span>
 
-            if (!p) {
+</div>
 
-                showToast(
-                    '⚠️ لم يتم العثور على المريض.'
-                );
 
-                return;
-            }
+<div
+id="doctorQueueList"
+class="space-y-2.5 max-h-[500px] overflow-y-auto">
+</div>
 
+</div>
 
-            try {
 
-                p.visitsCount =
-                    (Number(p.visitsCount) || 1) + 1;
 
+<div class="lg:col-span-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
 
-                p.status =
-                    'waiting';
 
+<div id="noPatientSelectedState"
+     class="text-center py-20 text-slate-400">
 
-                p.dateFormatted =
-                    new Date()
-                        .toLocaleDateString('ar-EG');
+<div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl text-slate-400">
 
+<i class="fa-solid fa-stethoscope"></i>
 
-                /*
-                 * حفظ محلي
-                 */
-                saveData();
+</div>
 
+<p class="text-sm font-semibold text-slate-600">
+اختر مريضاً من قائمة الانتظار للبدء في الكشف
+</p>
 
-                /*
-                 * حفظ Google
-                 */
-                const cloudResult =
-                    await syncPatientToGoogleSheet(p);
+</div>
 
 
-                renderNurseTodayList();
-                renderDoctorQueue();
-                renderPatientArchive();
 
+<div id="activePatientForm"
+     class="hidden space-y-5">
 
-                if (cloudResult) {
 
-                    showToast(
-                        `✅ تم تجديد كشف المريض (${p.name}) وحفظ الزيارة رقم ${p.visitsCount} في Google Sheet.`
-                    );
+<div class="bg-[#0b132b] text-white p-4 rounded-2xl flex flex-wrap justify-between items-center shadow-lg border border-slate-800">
 
-                } else {
+<div>
 
-                    showToast(
-                        `⚠️ تم تجديد الكشف محليًا، لكن تعذر حفظه في Google Sheet.`
-                    );
-                }
+<div class="flex items-center gap-2 mb-1">
 
-            }
+<h3 id="doc_active_name"
+    class="font-bold text-lg text-white">
+---
+</h3>
 
-            catch (err) {
 
-                console.error(
-                    'Renew patient error:',
-                    err
-                );
+<span
+id="doc_active_visit_tag"
+class="bg-teal-500/20 text-teal-300 text-[10px] px-2 py-0.5 rounded-full font-bold">
+الزيارة رقم: 1
+</span>
 
-                showToast(
-                    '⚠️ حدث خطأ أثناء تجديد الكشف: ' +
-                    (err.message || err)
-                );
-            }
-        }
+</div>
 
 
-        /* ==========================================
-           SAVE PATIENT TO GOOGLE SHEET
-           ========================================== */
+<p class="text-xs text-slate-300">
 
-        async function syncPatientToGoogleSheet(patient) {
+العمر:
+<span id="doc_active_age"
+      class="font-en font-bold">--</span>
 
-            try {
+سنة |
 
-                if (
-                    !patient ||
-                    patient.id == null
-                ) {
+النوع:
+<span id="doc_active_gender">--</span>
 
-                    throw new Error(
-                        'بيانات المريض غير صحيحة.'
-                    );
-                }
+|
 
+الهاتف:
+<span id="doc_active_phone"
+      class="font-en">--</span>
 
-                const payload =
-                    JSON.stringify({
-                        action: 'UPSERT_PATIENT',
-                        patient: patient
-                    });
+</p>
 
+</div>
 
-                console.log(
-                    'Saving patient to Google Sheet:',
-                    patient.id,
-                    patient.name
-                );
 
 
-                const res =
-                    await fetch(
-                        CLOUD_API_URL,
-                        {
-                            method: 'POST',
+<div class="flex gap-2 text-xs font-en mt-2 sm:mt-0">
 
-                            headers: {
-                                'Content-Type':
-                                    'text/plain;charset=utf-8'
-                            },
+<div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center">
 
-                            body: payload,
+<span class="block text-[9px] text-slate-400">
+Weight
+</span>
 
-                            cache: 'no-store'
-                        }
-                    );
+<span id="doc_active_weight"
+      class="font-bold text-teal-400">
+-- kg
+</span>
 
+</div>
 
-                if (!res.ok) {
 
-                    throw new Error(
-                        'HTTP ' + res.status
-                    );
-                }
+<div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center">
 
+<span class="block text-[9px] text-slate-400">
+Height
+</span>
 
-                const data =
-                    await res.json();
+<span id="doc_active_height"
+      class="font-bold text-teal-400">
+-- cm
+</span>
 
+</div>
 
-                if (!data.ok) {
 
-                    throw new Error(
-                        data.error ||
-                        'Google sync failed'
-                    );
-                }
+<div class="bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl text-center">
 
+<span class="block text-[9px] text-slate-400">
+Temp
+</span>
 
-                cloudSyncReady = true;
+<span id="doc_active_temp"
+      class="font-bold text-amber-400">
+-- °C
+</span>
 
+</div>
 
-                console.log(
-                    'Google Sheet save successful:',
-                    data
-                );
+</div>
 
+</div>
 
-                return data;
 
-            }
 
-            catch (err) {
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                cloudSyncReady = false;
+<div>
 
-                console.error(
-                    'Google sync error:',
-                    err
-                );
+<label class="block text-xs font-bold text-slate-700 mb-1">
+أعراض المريض والتاريخ المرضي
+</label>
 
-                return null;
-            }
-        }
+<textarea
+id="doc_history"
+rows="3"
+class="w-full p-3 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50"></textarea>
 
+</div>
 
-        /* ==========================================
-           LOAD PATIENTS FROM GOOGLE
-           ========================================== */
 
-        async function loadPatientsFromGoogleSheet() {
+<div>
 
-            const localPatients =
-                Array.isArray(patients)
-                    ? [...patients]
-                    : [];
+<label class="block text-xs font-bold text-slate-700 mb-1">
+التشخيص الطبي (Diagnosis)
+</label>
 
+<textarea
+id="doc_diagnosis"
+rows="3"
+class="w-full p-3 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50 font-en"></textarea>
 
-            try {
+</div>
 
-                const res =
-                    await fetch(
-                        CLOUD_API_URL +
-                        '?action=GET_PATIENTS&ts=' +
-                        Date.now(),
-                        {
-                            method: 'GET',
-                            cache: 'no-store'
-                        }
-                    );
+</div>
 
 
-                if (!res.ok) {
 
-                    throw new Error(
-                        'HTTP ' + res.status
-                    );
-                }
+<div class="border-t pt-4">
 
+<div class="flex justify-between items-center mb-3">
 
-                const data =
-                    await res.json();
+<h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
 
+<i class="fa-solid fa-pills text-teal-600"></i>
 
-                if (
-                    !data.ok ||
-                    !Array.isArray(data.patients)
-                ) {
+<span>قائمة الأدوية الموصوفة (الروشتة)</span>
 
-                    throw new Error(
-                        data.error ||
-                        'Invalid Google Sheet response'
-                    );
-                }
+</h4>
 
 
-                const cloudPatients =
-                    data.patients;
+<button
+type="button"
+onclick="addMedicationRow()"
+class="text-xs bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1">
 
+<i class="fa-solid fa-plus"></i>
+إضافة دواء
 
-                /*
-                 * Google فاضية
-                 * ولكن الجهاز لديه بيانات محلية
-                 */
-                if (
-                    cloudPatients.length === 0 &&
-                    localPatients.length > 0
-                ) {
+</button>
 
-                    console.log(
-                        'Google Sheet is empty. Uploading local patients...'
-                    );
+</div>
 
 
-                    let uploaded = 0;
+<div
+id="medicationsContainer"
+class="space-y-2 max-h-52 overflow-y-auto">
+</div>
 
+</div>
 
-                    for (
-                        const p of localPatients
-                    ) {
 
-                        const result =
-                            await syncPatientToGoogleSheet(
-                                p
-                            );
 
+<div class="border-t pt-4">
 
-                        if (result) {
-                            uploaded++;
-                        }
-                    }
+<div class="flex justify-between items-center mb-3">
 
+<h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
 
-                    const verifyRes =
-                        await fetch(
-                            CLOUD_API_URL +
-                            '?action=GET_PATIENTS&ts=' +
-                            Date.now(),
-                            {
-                                method: 'GET',
-                                cache: 'no-store'
-                            }
-                        );
+<i class="fa-solid fa-vials text-indigo-600"></i>
 
+<span>التحاليل والأشعة المطلوبة</span>
 
-                    if (!verifyRes.ok) {
+</h4>
 
-                        throw new Error(
-                            'HTTP ' +
-                            verifyRes.status
-                        );
-                    }
 
+<button
+type="button"
+onclick="addLabRow()"
+class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1">
 
-                    const verifyData =
-                        await verifyRes.json();
+<i class="fa-solid fa-plus"></i>
+إضافة فحص
 
+</button>
 
-                    if (
-                        !verifyData.ok ||
-                        !Array.isArray(
-                            verifyData.patients
-                        )
-                    ) {
+</div>
 
-                        throw new Error(
-                            verifyData.error ||
-                            'Invalid Google Sheet response'
-                        );
-                    }
 
+<div
+id="labsContainer"
+class="space-y-2 max-h-36 overflow-y-auto">
+</div>
 
-                    patients =
-                        verifyData.patients;
+</div>
 
 
-                    console.log(
-                        'Migration complete: ' +
-                        uploaded +
-                        '/' +
-                        localPatients.length +
-                        ' uploaded.'
-                    );
 
-                }
+<div class="border-t pt-4 flex flex-wrap justify-between items-center gap-3">
 
+<button
+type="button"
+onclick="saveExamRecord()"
+class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition flex items-center gap-2">
 
-                /*
-                 * Google بها بيانات
-                 */
-                else {
+<i class="fa-solid fa-floppy-disk"></i>
 
-                    patients =
-                        cloudPatients;
+<span>حفظ الكشف بالملف</span>
 
+</button>
 
-                    /*
-                     * البحث عن بيانات محلية
-                     * غير موجودة في Google
-                     */
-                    const cloudIds =
-                        new Set(
-                            cloudPatients.map(
-                                p => String(p.id)
-                            )
-                        );
 
+<div class="flex flex-wrap gap-2">
 
-                    const localOnlyPatients =
-                        localPatients.filter(
-                            p =>
-                                !cloudIds.has(
-                                    String(p.id)
-                                )
-                        );
+<button
+type="button"
+onclick="showPrescriptionPreview()"
+class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-2">
 
+<i class="fa-solid fa-eye"></i>
 
-                    if (
-                        localOnlyPatients.length > 0
-                    ) {
+<span>معاينة الروشتة</span>
 
-                        console.log(
-                            'Uploading ' +
-                            localOnlyPatients.length +
-                            ' local-only patients to Google...'
-                        );
+</button>
 
 
-                        for (
-                            const p of localOnlyPatients
-                        ) {
+<button
+type="button"
+onclick="printPrescriptionTextOnly()"
+class="bg-[#0d9488] hover:bg-[#0f766e] text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-2">
 
-                            const result =
-                                await syncPatientToGoogleSheet(
-                                    p
-                                );
+<i class="fa-solid fa-print"></i>
 
-                            if (result) {
-                                patients.unshift(p);
-                            }
-                        }
+<span>طباعة الروشتة</span>
 
+</button>
 
-                        /*
-                         * إعادة تحميل Google
-                         */
-                        const finalRes =
-                            await fetch(
-                                CLOUD_API_URL +
-                                '?action=GET_PATIENTS&ts=' +
-                                Date.now(),
-                                {
-                                    method: 'GET',
-                                    cache: 'no-store'
-                                }
-                            );
 
+<button
+type="button"
+onclick="savePrescriptionAsPDF()"
+class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-2">
 
-                        if (finalRes.ok) {
+<i class="fa-solid fa-file-pdf"></i>
 
-                            const finalData =
-                                await finalRes.json();
+<span>حفظ PDF</span>
 
+</button>
 
-                            if (
-                                finalData.ok &&
-                                Array.isArray(
-                                    finalData.patients
-                                )
-                            ) {
+</div>
 
-                                patients =
-                                    finalData.patients;
-                            }
-                        }
-                    }
-                }
+</div>
 
+</div>
 
-                /*
-                 * تحديث localStorage
-                 */
-                localStorage.setItem(
-                    'clinic_patients',
-                    JSON.stringify(patients)
-                );
+</div>
 
+</div>
 
-                cloudSyncReady = true;
+</section>
 
 
-                renderNurseTodayList();
-                renderDoctorQueue();
-                renderPatientArchive();
 
+<!-- =====================================================
+     ARCHIVE
+     ===================================================== -->
 
-                console.log(
-                    'Loaded ' +
-                    patients.length +
-                    ' patients from Google Sheet'
-                );
+<section id="view-archive"
+         class="tab-content hidden space-y-6">
 
-            }
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
 
-            catch (err) {
+<div class="flex flex-wrap justify-between items-center mb-5 gap-3">
 
-                cloudSyncReady = false;
+<div>
 
+<h2 class="font-bold text-slate-800 text-base">
+أرشيف وجدول المرضى
+</h2>
 
-                console.error(
-                    'Google Sheet load error:',
-                    err
-                );
+<p class="text-xs text-slate-500">
+سجل شامل لجميع المرضى الذين تم تسجيلهم بالعيادة وعدد الزيارات
+</p>
 
+</div>
 
-                /*
-                 * في حالة فشل Google:
-                 * استمر بالنسخة المحلية.
-                 */
-                patients =
-                    localPatients;
 
+<div class="w-72">
 
-                localStorage.setItem(
-                    'clinic_patients',
-                    JSON.stringify(patients)
-                );
+<input
+type="text"
+id="archiveSearchInput"
+oninput="filterArchiveTable()"
+placeholder="بحث باسم المريض أو الهاتف..."
+class="w-full px-3.5 py-2 border rounded-xl text-xs outline-none focus:border-teal-500 bg-slate-50">
 
+</div>
 
-                renderNurseTodayList();
-                renderDoctorQueue();
-                renderPatientArchive();
+</div>
 
 
-                console.log(
-                    'Using local patient cache because Google Sheet is unavailable.'
-                );
-            }
-        }
 
+<div class="overflow-x-auto">
 
-        /* ==========================================
-           REALTIME GOOGLE SYNC
-           كل ثانيتين
-           ========================================== */
+<table class="w-full text-right text-xs">
 
-        async function refreshFromCloudSilently() {
+<thead class="bg-slate-50 border-b text-slate-600">
 
-            if (
-                cloudPollBusy ||
-                document.visibilityState === 'hidden'
-            ) {
-                return;
-            }
+<tr>
 
+<th class="p-3">اسم المريض</th>
+<th class="p-3">العمر / النوع</th>
+<th class="p-3">عدد الزيارات</th>
+<th class="p-3">الهاتف</th>
+<th class="p-3">تاريخ آخر كشف</th>
+<th class="p-3">التشخيص الحالي</th>
+<th class="p-3 text-center">الإجراءات</th>
 
-            cloudPollBusy = true;
+</tr>
 
+</thead>
 
-            try {
 
-                const res =
-                    await fetch(
-                        CLOUD_API_URL +
-                        '?action=GET_PATIENTS&ts=' +
-                        Date.now(),
-                        {
-                            method: 'GET',
-                            cache: 'no-store'
-                        }
-                    );
+<tbody
+id="patientArchiveTableBody"
+class="divide-y text-slate-700">
+</tbody>
 
+</table>
 
-                if (!res.ok) {
+</div>
 
-                    throw new Error(
-                        'HTTP ' + res.status
-                    );
-                }
+</div>
 
+</section>
 
-                const data =
-                    await res.json();
+</main>
 
+</div>
 
-                if (
-                    !data.ok ||
-                    !Array.isArray(data.patients)
-                ) {
 
-                    throw new Error(
-                        data.error ||
-                        'Invalid response'
-                    );
-                }
 
+<!-- =====================================================
+     PRINT TEMPLATE
+     ===================================================== -->
 
-                const incoming =
-                    data.patients;
+<div id="prescription-template-print"
+     aria-hidden="true">
 
+<div class="rx-paper">
 
-                const oldSignature =
-                    JSON.stringify(patients);
+<img
+class="rx-bg"
+src="Treatment_prescription.jpg"
+alt="">
 
 
-                const newSignature =
-                    JSON.stringify(incoming);
+<div
+class="rx-field rx-patient-name"
+id="rx_patient_name">
+</div>
 
 
-                if (
-                    oldSignature !== newSignature
-                ) {
+<div
+class="rx-field rx-age"
+id="rx_patient_age">
+</div>
 
-                    patients =
-                        incoming;
 
+<div
+class="rx-field rx-date"
+id="rx_date">
+</div>
 
-                    localStorage.setItem(
-                        'clinic_patients',
-                        JSON.stringify(patients)
-                    );
 
+<div
+class="rx-content-body"
+id="rx_content_body">
+</div>
 
-                    renderNurseTodayList();
-                    renderDoctorQueue();
-                    renderPatientArchive();
+</div>
 
+</div>
 
-                    if (activePatientId) {
 
-                        const active =
-                            patients.find(
-                                x =>
-                                    String(x.id) ===
-                                    String(activePatientId)
-                            );
 
+<!-- =====================================================
+     PRESCRIPTION PREVIEW
+     ===================================================== -->
 
-                        if (active) {
+<div
+id="prescriptionPreviewModal"
+class="hidden fixed inset-0 bg-slate-950/90 z-[100] overflow-y-auto p-4">
 
-                            selectPatientForExam(
-                                active.id
-                            );
+<div class="min-h-full flex items-start justify-center py-6">
 
-                        }
-                    }
-                }
+<div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden">
 
 
-                cloudSyncReady = true;
+<div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between sticky top-0 z-10">
 
-            }
+<div class="flex items-center gap-2">
 
-            catch (err) {
+<i class="fa-solid fa-file-prescription text-teal-400"></i>
 
-                console.debug(
-                    'Realtime refresh skipped:',
-                    err
-                );
+<div>
 
-            }
+<h3 class="font-bold text-sm">
+معاينة الروشتة
+</h3>
 
-            finally {
+<p class="text-[10px] text-slate-400">
+هذه المعاينة تظهر شكل الروشتة قبل الطباعة
+</p>
 
-                cloudPollBusy = false;
-            }
-        }
+</div>
 
+</div>
 
-        function startRealtimeSync() {
 
-            refreshFromCloudSilently();
+<button
+type="button"
+onclick="closePrescriptionPreview()"
+class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-rose-600 flex items-center justify-center transition">
 
-            setInterval(
-                refreshFromCloudSilently,
-                2000
-            );
-        }
+<i class="fa-solid fa-xmark"></i>
 
+</button>
 
-        /* ==========================================
-           NURSE TODAY LIST
-           ========================================== */
+</div>
 
-        function renderNurseTodayList() {
 
-            const container =
-                document.getElementById(
-                    'nurseTodayList'
-                );
 
+<div class="bg-slate-200 p-4 sm:p-8 overflow-auto">
 
-            const badge =
-                document.getElementById(
-                    'nurseCountBadge'
-                );
+<div
+id="prescriptionPreviewPaper"
+class="relative bg-white mx-auto shadow-2xl"
+style="
+width:210mm;
+height:297mm;
+min-width:210mm;
+min-height:297mm;
+overflow:hidden;
+">
 
+<img
+src="Treatment_prescription.jpg"
+alt=""
+class="absolute inset-0 w-full h-full object-fill"
+style="z-index:0;">
 
-            badge.innerText =
-                patients.length;
 
+<div
+class="absolute text-black font-black"
+style="
+top:55mm;
+right:40mm;
+width:90mm;
+font-family:Cairo,Arial,sans-serif;
+direction:rtl;
+text-align:right;
+font-size:20px;
+line-height:1.2;
+z-index:2;
+"
+id="preview_patient_name">
+</div>
 
-            if (!patients.length) {
 
-                container.innerHTML = `
-                    <p class="text-xs text-slate-400 text-center py-6">
-                        لا يوجد كشوفات مسجلة اليوم
-                    </p>
-                `;
+<div
+class="absolute text-black font-black"
+style="
+top:55mm;
+right:160mm;
+width:40mm;
+font-family:Cairo,Arial,sans-serif;
+direction:rtl;
+text-align:right;
+font-size:20px;
+line-height:1.2;
+z-index:2;
+"
+id="preview_patient_age">
+</div>
 
-                return;
-            }
 
+<div
+class="absolute text-black font-black"
+style="
+top:65mm;
+right:160mm;
+width:40mm;
+font-family:Cairo,Arial,sans-serif;
+direction:rtl;
+text-align:right;
+font-size:30px;
+line-height:1.2;
+z-index:2;
+"
+id="preview_date">
+</div>
 
-            container.innerHTML =
-                patients
-                    .map(
-                        p => `
 
-                    <div class="p-3 bg-slate-50 border rounded-xl flex items-center justify-between text-xs">
+<div
+class="absolute text-black font-bold"
+style="
+top:98mm;
+right:18mm;
+width:174mm;
+font-family:Cairo,Arial,sans-serif;
+direction:rtl;
+text-align:right;
+font-size:18px;
+line-height:1.5;
+z-index:2;
+"
+id="preview_content_body">
+</div>
 
-                        <div>
+</div>
 
-                            <div class="font-bold text-slate-800">
+</div>
 
-                                ${escapeHTML(p.name)}
 
-                                <span class="text-[10px] text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded-md font-en font-bold">
 
-                                    زيارة ${p.visitsCount || 1}
+<div class="bg-white border-t p-4 flex flex-wrap justify-center gap-2">
 
-                                </span>
+<button
+type="button"
+onclick="printPrescriptionTextOnly()"
+class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2">
 
-                            </div>
+<i class="fa-solid fa-print"></i>
 
+طباعة على ورق الروشتة
 
-                            <div class="text-[11px] text-slate-500">
+</button>
 
-                                ${escapeHTML(p.age || '')}
-                                Yrs •
 
-                                ${p.gender === 'male'
-                                    ? 'ذكر'
-                                    : 'أنثى'}
+<button
+type="button"
+onclick="savePrescriptionAsPDF()"
+class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2">
 
-                                •
+<i class="fa-solid fa-file-pdf"></i>
 
-                                ${escapeHTML(
-                                    p.phone ||
-                                    'بدون هاتف'
-                                )}
+حفظ كـ PDF
 
-                            </div>
+</button>
 
-                        </div>
 
+<button
+type="button"
+onclick="closePrescriptionPreview()"
+class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-xl text-xs">
 
-                        <span
-                            class="px-2.5 py-1 rounded-full font-bold text-[10px]
-                            ${
-                                p.status === 'waiting'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-emerald-100 text-emerald-800'
-                            }">
+إغلاق
 
-                            ${
-                                p.status === 'waiting'
-                                    ? 'في الانتظار'
-                                    : 'تم الكشف'
-                            }
+</button>
 
-                        </span>
+</div>
 
-                    </div>
+</div>
 
-                `
-                    )
-                    .join('');
-        }
+</div>
 
+</div>
 
-        /* ==========================================
-           DOCTOR QUEUE
-           ========================================== */
 
-        function renderDoctorQueue() {
 
-            const container =
-                document.getElementById(
-                    'doctorQueueList'
-                );
+<!-- =====================================================
+     JAVASCRIPT
+     ===================================================== -->
 
+<script>
 
-            const waiting =
-                patients.filter(
-                    p =>
-                        p.status === 'waiting'
-                );
 
+/* =====================================================
+   GOOGLE APPS SCRIPT
+   ===================================================== */
 
-            document.getElementById(
-                'docQueueBadge'
-            ).innerText =
-                waiting.length;
+const CLOUD_API_URL =
+"https://script.google.com/macros/s/AKfycbzbZ4k8c4ZCBp0FsVIAf3mewOrcZs5c4q2PtL7DG17Y_nOzfJbGHgckK0cFkLbfJRnVSA/exec";
 
+const APPS_SCRIPT_DEPLOYMENT_ID =
+"AKfycbzbZ4k8c4ZCBp0FsVIAf3mewOrcZs5c4q2PtL7DG17Y_nOzfJbGHgckK0cFkLbfJRnVSA";
 
-            document.getElementById(
-                'queueBadge'
-            ).innerText =
-                waiting.length;
+const APPS_SCRIPT_LIBRARY_URL =
+"https://script.google.com/macros/library/d/1TuPko3nNMQlV1-JX_k9e0T9tk7XNywBE5vOfqm7oENdrC36Q9QrENdfV/2";
 
 
-            if (!waiting.length) {
+/* =====================================================
+   GLOBAL STATE
+   ===================================================== */
 
-                container.innerHTML = `
-                    <p class="text-xs text-slate-400 text-center py-6">
-                        لا يوجد مرضى في الانتظار
-                    </p>
-                `;
+let currentUser = null;
 
-                return;
-            }
+let patients =
+JSON.parse(
+localStorage.getItem('clinic_patients')
+) || [];
 
+let activePatientId = null;
 
-            container.innerHTML =
-                waiting
-                    .map(
-                        p => `
+let cloudSyncReady = false;
 
-                    <div
-                        onclick="selectPatientForExam('${String(p.id).replace(/'/g, "\\'")}')"
-                        class="p-3 border rounded-xl cursor-pointer hover:border-teal-500 transition text-xs flex justify-between items-center
-                        ${
-                            String(activePatientId) ===
-                            String(p.id)
-                                ? 'bg-teal-50 border-teal-500 shadow-sm'
-                                : 'bg-slate-50'
-                        }">
+let cloudPollBusy = false;
 
-                        <div>
 
-                            <strong class="text-slate-800 text-sm block mb-0.5">
+/* =====================================================
+   TABS
+   ===================================================== */
 
-                                ${escapeHTML(p.name)}
+function switchTab(tabId) {
 
-                            </strong>
+if (
+tabId === 'doctor' &&
+(!currentUser || currentUser.role !== 'doctor')
+) {
 
-                            <span class="text-slate-500 text-[11px]">
+showToast(
+'❌ عذراً! الوصول لغرفة الكشف للطبيب فقط.'
+);
 
-                                ${escapeHTML(p.age || '')}
-                                Yrs •
+return;
+}
 
-                                الزيارة:
-                                (${p.visitsCount || 1})
 
-                            </span>
+document
+.querySelectorAll('.tab-content')
+.forEach(
+el => el.classList.add('hidden')
+);
 
-                        </div>
 
+document
+.querySelectorAll('.tab-btn')
+.forEach(
+btn =>
+btn.classList.remove(
+'bg-teal-600',
+'text-white'
+)
+);
 
-                        <i class="fa-solid fa-chevron-left text-slate-400"></i>
 
-                    </div>
+const view =
+document.getElementById(
+`view-${tabId}`
+);
 
-                `
-                    )
-                    .join('');
-        }
+if (view) {
+view.classList.remove('hidden');
+}
 
 
-        /* ==========================================
-           SELECT PATIENT
-           ========================================== */
+const activeBtn =
+document.getElementById(
+`tab-btn-${tabId}`
+);
 
-        function selectPatientForExam(id) {
+if (activeBtn) {
 
-            activePatientId = id;
+activeBtn.classList.add(
+'bg-teal-600',
+'text-white'
+);
 
+}
 
-            const p =
-                patients.find(
-                    x =>
-                        String(x.id) ===
-                        String(id)
-                );
+}
 
 
-            if (!p) {
-                return;
-            }
+/* =====================================================
+   LOGIN
+   ===================================================== */
 
+function handleLoginSubmit(e) {
 
-            document
-                .getElementById(
-                    'noPatientSelectedState'
-                )
-                .classList.add('hidden');
+e.preventDefault();
 
+const u =
+document
+.getElementById('login_username')
+.value
+.trim();
 
-            document
-                .getElementById(
-                    'activePatientForm'
-                )
-                .classList.remove('hidden');
+const p =
+document
+.getElementById('login_password')
+.value
+.trim();
 
 
-            document.getElementById(
-                'doc_active_name'
-            ).innerText =
-                p.name || '';
+if (
+(u === 'Mostafa Mousa' || u === 'doctor') &&
+(p === 'Dr.M0$tafa_Mousa' || p === '123456')
+) {
 
+currentUser = {
+username: u,
+role: 'doctor',
+name: 'د. مصطفى موسى هارون'
+};
 
-            document.getElementById(
-                'doc_active_age'
-            ).innerText =
-                p.age || '';
+}
 
+else if (
+(u === '$Nurse@' || u === 'nurse') &&
+(p === '_Nurse_CliniC$200' || p === '123456')
+) {
 
-            document.getElementById(
-                'doc_active_gender'
-            ).innerText =
-                p.gender === 'male'
-                    ? 'ذكر'
-                    : 'أنثى';
+currentUser = {
+username: u,
+role: 'nurse',
+name: 'استقبال الممرضة'
+};
 
+}
 
-            document.getElementById(
-                'doc_active_phone'
-            ).innerText =
-                p.phone || '--';
+else {
 
+document
+.getElementById('loginErrorMsg')
+.classList.remove('hidden');
 
-            document.getElementById(
-                'doc_active_visit_tag'
-            ).innerText =
-                `الزيارة رقم: ${p.visitsCount || 1}`;
+return;
 
+}
 
-            document.getElementById(
-                'doc_active_weight'
-            ).innerText =
-                `${p.vitals?.weight || '--'} kg`;
 
+document
+.getElementById('loginErrorMsg')
+.classList.add('hidden');
 
-            document.getElementById(
-                'doc_active_height'
-            ).innerText =
-                `${p.vitals?.height || '--'} cm`;
 
+document
+.getElementById('mandatoryAuthOverlay')
+.classList.add('hidden');
 
-            document.getElementById(
-                'doc_active_temp'
-            ).innerText =
-                `${p.vitals?.temp || '--'} °C`;
 
+document
+.getElementById('appContainer')
+.classList.remove('hidden');
 
-            document.getElementById(
-                'doc_history'
-            ).value =
-                p.history || '';
 
+document
+.getElementById('loggedInUserText')
+.innerText =
+currentUser.name;
 
-            document.getElementById(
-                'doc_diagnosis'
-            ).value =
-                p.diagnosis || '';
 
+switchTab(
+currentUser.role === 'doctor'
+? 'doctor'
+: 'nurse'
+);
 
-            document.getElementById(
-                'medicationsContainer'
-            ).innerHTML = '';
+}
 
 
-            (p.medications || [])
-                .forEach(
-                    m =>
-                        addMedicationRow(m)
-                );
+/* =====================================================
+   LOGOUT
+   ===================================================== */
 
+function handleLogout() {
 
-            if (
-                !p.medications ||
-                !p.medications.length
-            ) {
+currentUser = null;
 
-                addMedicationRow();
-            }
+document
+.getElementById('appContainer')
+.classList.add('hidden');
 
+document
+.getElementById('mandatoryAuthOverlay')
+.classList.remove('hidden');
 
-            document.getElementById(
-                'labsContainer'
-            ).innerHTML = '';
+document
+.getElementById('login_username')
+.value = '';
 
+document
+.getElementById('login_password')
+.value = '';
 
-            (p.labs || [])
-                .forEach(
-                    l =>
-                        addLabRow(l)
-                );
+}
 
 
-            if (
-                !p.labs ||
-                !p.labs.length
-            ) {
+/* =====================================================
+   NURSE SUBMIT
+   ===================================================== */
 
-                addLabRow();
-            }
+async function handleNurseSubmit(e) {
 
+e.preventDefault();
 
-            renderDoctorQueue();
-        }
+const form = e.target;
 
+const submitButton =
+form.querySelector(
+'button[type="submit"]'
+);
 
-        /* ==========================================
-           MEDICATION ROW
-           ========================================== */
+const originalButtonHTML =
+submitButton
+? submitButton.innerHTML
+: '';
 
-        function addMedicationRow(data = {}) {
 
-            const container =
-                document.getElementById(
-                    'medicationsContainer'
-                );
+if (submitButton) {
 
+submitButton.disabled = true;
 
-            const row =
-                document.createElement('div');
+submitButton.innerHTML = `
+<i class="fa-solid fa-spinner fa-spin"></i>
+<span>جاري الحفظ...</span>
+`;
 
+}
 
-            row.className =
-                "med-row grid grid-cols-12 gap-2 bg-slate-50 p-2 border rounded-xl items-center text-xs";
 
+try {
 
-            row.innerHTML = `
+const name =
+document.getElementById('nurse_name').value.trim();
 
-                <input
-                    type="text"
-                    value="${escapeAttribute(data.name || '')}"
-                    placeholder="اسم الدواء"
-                    class="med-name col-span-5 p-2 border rounded-lg font-en outline-none bg-white">
+const age =
+document.getElementById('nurse_age').value.trim();
 
+const phone =
+document.getElementById('nurse_phone').value.trim();
 
-                <input
-                    type="text"
-                    value="${escapeAttribute(data.dose || '')}"
-                    placeholder="1 قرص"
-                    class="med-dose col-span-3 p-2 border rounded-lg outline-none bg-white text-center">
+const gender =
+document.getElementById('nurse_gender').value;
 
+const job =
+document.getElementById('nurse_job').value.trim();
 
-                <input
-                    type="text"
-                    value="${escapeAttribute(data.duration || '')}"
-                    placeholder="كل 12 ساعة"
-                    class="med-duration col-span-3 p-2 border rounded-lg outline-none bg-white text-center">
+const address =
+document.getElementById('nurse_address').value.trim();
 
+const weight =
+document.getElementById('nurse_weight').value.trim();
 
-                <button
-                    type="button"
-                    onclick="this.closest('.med-row').remove()"
-                    class="col-span-1 text-rose-500 text-center">
+const height =
+document.getElementById('nurse_height').value.trim();
 
-                    <i class="fa-solid fa-trash"></i>
+const temp =
+document.getElementById('nurse_temp').value.trim();
 
-                </button>
 
-            `;
+if (!name || !age) {
 
+showToast(
+'⚠️ برجاء إدخال اسم المريض والعمر.'
+);
 
-            container.appendChild(row);
-        }
+return;
 
+}
 
-        /* ==========================================
-           LAB ROW
-           ========================================== */
 
-        function addLabRow(data = {}) {
+let existingPatient =
+patients.find(
+p =>
+String(p.name || '')
+.trim()
+.toLowerCase() ===
+name.toLowerCase()
+);
 
-            const container =
-                document.getElementById(
-                    'labsContainer'
-                );
 
+let cloudResult = null;
 
-            const row =
-                document.createElement('div');
 
+/* EXISTING */
 
-            row.className =
-                "lab-row flex gap-2 bg-slate-50 p-2 border rounded-xl text-xs";
+if (existingPatient) {
 
+existingPatient.visitsCount =
+(Number(existingPatient.visitsCount) || 1) + 1;
 
-            row.innerHTML = `
+existingPatient.status = 'waiting';
 
-                <input
-                    type="text"
-                    value="${escapeAttribute(data.testName || '')}"
-                    placeholder="اسم التحليل أو الأشعة"
-                    class="lab-name flex-1 p-2 border rounded-lg font-en outline-none bg-white">
+existingPatient.dateFormatted =
+new Date().toLocaleDateString('ar-EG');
 
+if (phone)
+existingPatient.phone = phone;
 
-                <button
-                    type="button"
-                    onclick="this.closest('.lab-row').remove()"
-                    class="text-rose-500 p-2">
+if (age)
+existingPatient.age = age;
 
-                    <i class="fa-solid fa-trash"></i>
+if (gender)
+existingPatient.gender = gender;
 
-                </button>
+if (job)
+existingPatient.job = job;
 
-            `;
+if (address)
+existingPatient.address = address;
 
+existingPatient.vitals = {
+weight,
+height,
+temp
+};
 
-            container.appendChild(row);
-        }
 
+saveData();
 
-        /* ==========================================
-           SAVE DOCTOR EXAM
-           ========================================== */
 
-        async function saveExamRecord() {
+cloudResult =
+await syncPatientToGoogleSheet(
+existingPatient
+);
 
-            if (!activePatientId) {
 
-                showToast(
-                    '⚠️ اختر المريض أولاً.'
-                );
+renderNurseTodayList();
+renderDoctorQueue();
+renderPatientArchive();
 
-                return;
-            }
 
+if (cloudResult) {
 
-            const p =
-                patients.find(
-                    x =>
-                        String(x.id) ===
-                        String(activePatientId)
-                );
+showToast(
+`✅ تم تحديث المريض (${name}) وحفظ الزيارة رقم ${existingPatient.visitsCount} في Google Sheet.`
+);
 
+} else {
 
-            if (!p) {
+showToast(
+`⚠️ تم حفظ المريض على الموقع، لكن تعذر حفظه في Google Sheet.`
+);
 
-                showToast(
-                    '⚠️ لم يتم العثور على المريض.'
-                );
+}
 
-                return;
-            }
+}
 
 
-            const meds = [];
+/* NEW */
 
+else {
 
-            document
-                .querySelectorAll('.med-row')
-                .forEach(
-                    r => {
+const newPatient = {
 
-                        const name =
-                            r.querySelector(
-                                '.med-name'
-                            )
-                            .value
-                            .trim();
+id: Date.now(),
 
+dateFormatted:
+new Date().toLocaleDateString('ar-EG'),
 
-                        const dose =
-                            r.querySelector(
-                                '.med-dose'
-                            )
-                            .value
-                            .trim();
+status: 'waiting',
 
+visitsCount: 1,
 
-                        const duration =
-                            r.querySelector(
-                                '.med-duration'
-                            )
-                            .value
-                            .trim();
+name,
 
+age,
 
-                        if (name) {
+gender,
 
-                            meds.push({
-                                name,
-                                dose,
-                                duration
-                            });
-                        }
-                    }
-                );
+phone,
 
+job,
 
-            const labs = [];
+address,
 
+vitals: {
+weight,
+height,
+temp
+},
 
-            document
-                .querySelectorAll('.lab-row')
-                .forEach(
-                    r => {
+history: '',
 
-                        const testName =
-                            r.querySelector(
-                                '.lab-name'
-                            )
-                            .value
-                            .trim();
+diagnosis: '',
 
+medications: [],
 
-                        if (testName) {
+labs: []
 
-                            labs.push({
-                                testName
-                            });
-                        }
-                    }
-                );
+};
 
 
-            p.history =
-                document
-                    .getElementById(
-                        'doc_history'
-                    )
-                    .value
-                    .trim();
+patients.unshift(newPatient);
 
+saveData();
 
-            p.diagnosis =
-                document
-                    .getElementById(
-                        'doc_diagnosis'
-                    )
-                    .value
-                    .trim();
 
+cloudResult =
+await syncPatientToGoogleSheet(
+newPatient
+);
 
-            p.medications =
-                meds;
 
+renderNurseTodayList();
+renderDoctorQueue();
+renderPatientArchive();
 
-            p.labs =
-                labs;
 
+if (cloudResult) {
 
-            p.status =
-                'completed';
+showToast(
+`✅ تم تسجيل المريض (${name}) وحفظ بياناته في Google Sheet.`
+);
 
+} else {
 
-            /*
-             * الحفظ المحلي
-             */
-            saveData();
+showToast(
+`⚠️ تم تسجيل المريض على الموقع، لكن تعذر حفظه في Google Sheet.`
+);
 
+}
 
-            /*
-             * الحفظ في Google
-             */
-            const cloudResult =
-                await syncPatientToGoogleSheet(p);
+}
 
 
-            renderDoctorQueue();
-            renderNurseTodayList();
-            renderPatientArchive();
+form.reset();
 
+}
 
-            if (cloudResult) {
+catch (err) {
 
-                showToast(
-                    '✅ تم حفظ الكشف والروشتة والتشخيص في Google بنجاح!'
-                );
+console.error(
+'Nurse submit error:',
+err
+);
 
-            } else {
+showToast(
+'⚠️ حدث خطأ أثناء تسجيل المريض: ' +
+(err.message || err)
+);
 
-                showToast(
-                    '⚠️ تم حفظ الكشف محليًا، لكن تعذر المزامنة مع Google.'
-                );
-            }
-        }
+}
 
+finally {
 
-        /* ==========================================
-           PRINT
-           ========================================== */
+if (submitButton) {
 
-        async function triggerUnifiedPrint() {
+submitButton.disabled = false;
 
-            if (!activePatientId) {
+submitButton.innerHTML =
+originalButtonHTML;
 
-                showToast(
-                    '⚠️ اختر المريض أولاً!'
-                );
+}
 
-                return;
-            }
+}
 
+}
 
-            /*
-             * نحفظ الكشف قبل الطباعة
-             */
-            await saveExamRecord();
 
+/* =====================================================
+   RENEW
+   ===================================================== */
 
-            const patient =
-                patients.find(
-                    p =>
-                        String(p.id) ===
-                        String(activePatientId)
-                );
+async function renewPatientExam(id) {
 
+const p =
+patients.find(
+x =>
+String(x.id) ===
+String(id)
+);
 
-            if (!patient) {
-                return;
-            }
 
+if (!p) {
 
-            document.getElementById(
-                'rx_patient_name'
-            ).textContent =
-                patient.name || '';
+showToast(
+'⚠️ لم يتم العثور على المريض.'
+);
 
+return;
 
-            document.getElementById(
-                'rx_patient_age'
-            ).textContent =
-                patient.age || '';
+}
 
 
-            document.getElementById(
-                'rx_date'
-            ).textContent =
-                new Date()
-                    .toLocaleDateString('ar-EG');
+try {
 
+p.visitsCount =
+(Number(p.visitsCount) || 1) + 1;
 
-            let contentHTML = '';
+p.status = 'waiting';
 
+p.dateFormatted =
+new Date().toLocaleDateString('ar-EG');
 
-            if (
-                patient.medications &&
-                patient.medications.length > 0
-            ) {
 
-                contentHTML += `
-                    <div class="rx-section-title">
-                        الأدوية والعلاج الموصوف:
-                    </div>
-                `;
+saveData();
 
 
-                patient.medications
-                    .forEach(
-                        (m, idx) => {
+const cloudResult =
+await syncPatientToGoogleSheet(p);
 
-                            contentHTML += `
 
-                                <div class="rx-med">
+renderNurseTodayList();
+renderDoctorQueue();
+renderPatientArchive();
 
-                                    <div class="rx-med-name">
-                                        ${idx + 1}.
-                                        ${escapeHTML(
-                                            m.name || ''
-                                        )}
-                                    </div>
 
-                                    <div class="rx-med-detail">
-                                        ${escapeHTML(
-                                            m.dose || ''
-                                        )}
+if (cloudResult) {
 
-                                        ${
-                                            m.duration
-                                                ? ' — ' +
-                                                  escapeHTML(
-                                                      m.duration
-                                                  )
-                                                : ''
-                                        }
-                                    </div>
+showToast(
+`✅ تم تجديد كشف المريض (${p.name}) وحفظ الزيارة رقم ${p.visitsCount} في Google Sheet.`
+);
 
-                                </div>
+} else {
 
-                            `;
-                        }
-                    );
-            }
+showToast(
+`⚠️ تم تجديد الكشف محليًا، لكن تعذر حفظه في Google Sheet.`
+);
 
+}
 
-            if (
-                patient.labs &&
-                patient.labs.length > 0
-            ) {
+}
 
-                contentHTML += `
-                    <div class="rx-section-title">
-                        الفحوصات والتحاليل المطلوبة:
-                    </div>
-                `;
+catch (err) {
 
+console.error(
+'Renew patient error:',
+err
+);
 
-                patient.labs
-                    .forEach(
-                        l => {
+showToast(
+'⚠️ حدث خطأ أثناء تجديد الكشف: ' +
+(err.message || err)
+);
 
-                            contentHTML += `
-                                <div class="rx-lab-item">
-                                    •
-                                    ${escapeHTML(
-                                        l.testName || ''
-                                    )}
-                                </div>
-                            `;
-                        }
-                    );
-            }
+}
 
+}
 
-            document.getElementById(
-                'rx_content_body'
-            ).innerHTML =
-                contentHTML;
 
+/* =====================================================
+   GOOGLE SAVE
+   ===================================================== */
 
-            const printTemplate =
-                document.getElementById(
-                    'prescription-template-print'
-                );
+async function syncPatientToGoogleSheet(patient) {
 
+try {
 
-            printTemplate.style.display =
-                'block';
+if (!patient || patient.id == null) {
 
+throw new Error(
+'بيانات المريض غير صحيحة.'
+);
 
-            window.print();
+}
 
 
-            setTimeout(
-                () => {
+const payload =
+JSON.stringify({
+action: 'UPSERT_PATIENT',
+patient
+});
 
-                    printTemplate.style.display =
-                        'none';
 
-                },
-                500
-            );
-        }
+console.log(
+'Saving patient to Google Sheet:',
+patient.id,
+patient.name
+);
 
 
-        /* ==========================================
-           ARCHIVE
-           ========================================== */
+const res =
+await fetch(
+CLOUD_API_URL,
+{
+method: 'POST',
 
-        function renderPatientArchive() {
+headers: {
+'Content-Type':
+'text/plain;charset=utf-8'
+},
 
-            const body =
-                document.getElementById(
-                    'patientArchiveTableBody'
-                );
+body: payload,
 
+cache: 'no-store'
+}
+);
 
-            if (!patients.length) {
 
-                body.innerHTML = `
-                    <tr>
-                        <td
-                            colspan="7"
-                            class="text-center py-6 text-slate-400">
-                            لا يوجد سجلات أرشفة
-                        </td>
-                    </tr>
-                `;
+if (!res.ok) {
 
-                return;
-            }
+throw new Error(
+'HTTP ' + res.status
+);
 
+}
 
-            body.innerHTML =
-                patients
-                    .map(
-                        p => `
 
-                    <tr class="hover:bg-slate-50 transition">
+const data =
+await res.json();
 
-                        <td class="p-3 font-bold text-slate-800">
 
-                            ${escapeHTML(
-                                p.name || ''
-                            )}
+if (!data.ok) {
 
-                        </td>
+throw new Error(
+data.error ||
+'Google sync failed'
+);
 
+}
 
-                        <td class="p-3 text-slate-600">
 
-                            ${escapeHTML(
-                                p.age || ''
-                            )}
+cloudSyncReady = true;
 
-                            Yrs
 
-                            (
-                            ${
-                                p.gender === 'male'
-                                    ? 'ذكر'
-                                    : 'أنثى'
-                            }
-                            )
+console.log(
+'Google Sheet save successful:',
+data
+);
 
-                        </td>
 
+return data;
 
-                        <td class="p-3">
+}
 
-                            <span
-                                class="bg-teal-50 text-teal-700 font-bold px-2 py-0.5 rounded-full text-[11px] font-en">
+catch (err) {
 
-                                C
-                                ${p.visitsCount || 1}
+cloudSyncReady = false;
 
-                            </span>
+console.error(
+'Google sync error:',
+err
+);
 
-                        </td>
+return null;
 
+}
 
-                        <td class="p-3 font-en text-slate-600">
+}
 
-                            ${escapeHTML(
-                                p.phone || '--'
-                            )}
 
-                        </td>
+/* =====================================================
+   LOAD GOOGLE
+   ===================================================== */
 
+async function loadPatientsFromGoogleSheet() {
 
-                        <td class="p-3 font-en text-slate-500">
+const localPatients =
+Array.isArray(patients)
+? [...patients]
+: [];
 
-                            ${escapeHTML(
-                                p.dateFormatted || ''
-                            )}
 
-                        </td>
+try {
 
+const res =
+await fetch(
+CLOUD_API_URL +
+'?action=GET_PATIENTS&ts=' +
+Date.now(),
+{
+method: 'GET',
+cache: 'no-store'
+}
+);
 
-                        <td class="p-3 font-en font-semibold text-teal-700">
 
-                            ${escapeHTML(
-                                p.diagnosis || '--'
-                            )}
+if (!res.ok) {
 
-                        </td>
+throw new Error(
+'HTTP ' + res.status
+);
 
+}
 
-                        <td class="p-3 text-center">
 
-                            <div class="flex items-center justify-center gap-2">
+const data =
+await res.json();
 
-                                <button
-                                    onclick="selectPatientForExam('${String(p.id).replace(/'/g, "\\'")}'); switchTab('doctor');"
-                                    class="bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-3 py-1 rounded-xl text-xs transition">
 
-                                    عرض الكشف
+if (
+!data.ok ||
+!Array.isArray(data.patients)
+) {
 
-                                </button>
+throw new Error(
+data.error ||
+'Invalid Google Sheet response'
+);
 
+}
 
-                                <button
-                                    onclick="renewPatientExam('${String(p.id).replace(/'/g, "\\'")}')"
-                                    class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-xl text-xs transition">
 
-                                    تجديد الكشف
+const cloudPatients =
+data.patients;
 
-                                </button>
 
-                            </div>
+if (
+cloudPatients.length === 0 &&
+localPatients.length > 0
+) {
 
-                        </td>
+let uploaded = 0;
 
-                    </tr>
 
-                `
-                    )
-                    .join('');
-        }
+for (const p of localPatients) {
 
+const result =
+await syncPatientToGoogleSheet(p);
 
-        /* ==========================================
-           ARCHIVE SEARCH
-           ========================================== */
+if (result)
+uploaded++;
 
-        function filterArchiveTable() {
+}
 
-            const q =
-                document
-                    .getElementById(
-                        'archiveSearchInput'
-                    )
-                    .value
-                    .toLowerCase();
 
+const verifyRes =
+await fetch(
+CLOUD_API_URL +
+'?action=GET_PATIENTS&ts=' +
+Date.now(),
+{
+method: 'GET',
+cache: 'no-store'
+}
+);
 
-            const rows =
-                document.querySelectorAll(
-                    '#patientArchiveTableBody tr'
-                );
 
+if (!verifyRes.ok) {
 
-            rows.forEach(
-                r => {
+throw new Error(
+'HTTP ' +
+verifyRes.status
+);
 
-                    r.style.display =
-                        r.innerText
-                            .toLowerCase()
-                            .includes(q)
-                            ? ''
-                            : 'none';
-                }
-            );
-        }
+}
 
 
-        /* ==========================================
-           LOCAL SAVE
-           ========================================== */
+const verifyData =
+await verifyRes.json();
 
-        function saveData() {
 
-            localStorage.setItem(
-                'clinic_patients',
-                JSON.stringify(patients)
-            );
-        }
+if (
+!verifyData.ok ||
+!Array.isArray(
+verifyData.patients
+)
+) {
 
+throw new Error(
+verifyData.error ||
+'Invalid Google Sheet response'
+);
 
-        /* ==========================================
-           TOAST
-           ========================================== */
+}
 
-        function showToast(msg) {
 
-            const t =
-                document.createElement('div');
+patients =
+verifyData.patients;
 
 
-            t.className =
-                "fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-2xl z-50 flex items-center gap-2 border border-slate-700";
+console.log(
+'Migration complete: ' +
+uploaded +
+'/' +
+localPatients.length +
+' uploaded.'
+);
 
+}
 
-            t.innerHTML = `
-                <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                ${escapeHTML(msg)}
-            `;
+else {
 
+patients =
+cloudPatients;
 
-            document.body.appendChild(t);
 
+const cloudIds =
+new Set(
+cloudPatients.map(
+p => String(p.id)
+)
+);
 
-            setTimeout(
-                () => t.remove(),
-                4500
-            );
-        }
 
+const localOnlyPatients =
+localPatients.filter(
+p =>
+!cloudIds.has(
+String(p.id)
+)
+);
 
-        /* ==========================================
-           SECURITY / HTML HELPERS
-           ========================================== */
 
-        function escapeHTML(value) {
+if (
+localOnlyPatients.length > 0
+) {
 
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+for (const p of localOnlyPatients) {
 
+const result =
+await syncPatientToGoogleSheet(p);
 
-        function escapeAttribute(value) {
+if (result)
+patients.unshift(p);
 
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/"/g, '&quot;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-        }
+}
 
 
-        /* ==========================================
-           START APPLICATION
-           ========================================== */
+const finalRes =
+await fetch(
+CLOUD_API_URL +
+'?action=GET_PATIENTS&ts=' +
+Date.now(),
+{
+method: 'GET',
+cache: 'no-store'
+}
+);
 
-        window.addEventListener(
-            'DOMContentLoaded',
-            async () => {
 
-                /*
-                 * عرض النسخة المحلية فورًا
-                 */
-                renderNurseTodayList();
-                renderDoctorQueue();
-                renderPatientArchive();
+if (finalRes.ok) {
 
+const finalData =
+await finalRes.json();
 
-                /*
-                 * تحميل النسخة المركزية من Google
-                 */
-                await loadPatientsFromGoogleSheet();
 
+if (
+finalData.ok &&
+Array.isArray(
+finalData.patients
+)
+) {
 
-                /*
-                 * تشغيل المزامنة المستمرة
-                 */
-                startRealtimeSync();
-            }
-        );
+patients =
+finalData.patients;
 
-    </script>
+}
+
+}
+
+}
+
+}
+
+
+localStorage.setItem(
+'clinic_patients',
+JSON.stringify(patients)
+);
+
+
+cloudSyncReady = true;
+
+
+renderNurseTodayList();
+renderDoctorQueue();
+renderPatientArchive();
+
+
+console.log(
+'Loaded ' +
+patients.length +
+' patients from Google Sheet'
+);
+
+}
+
+catch (err) {
+
+cloudSyncReady = false;
+
+console.error(
+'Google Sheet load error:',
+err
+);
+
+
+patients =
+localPatients;
+
+
+localStorage.setItem(
+'clinic_patients',
+JSON.stringify(patients)
+);
+
+
+renderNurseTodayList();
+renderDoctorQueue();
+renderPatientArchive();
+
+}
+
+}
+
+
+/* =====================================================
+   REALTIME
+   ===================================================== */
+
+async function refreshFromCloudSilently() {
+
+if (
+cloudPollBusy ||
+document.visibilityState === 'hidden'
+) {
+return;
+}
+
+
+cloudPollBusy = true;
+
+
+try {
+
+const res =
+await fetch(
+CLOUD_API_URL +
+'?action=GET_PATIENTS&ts=' +
+Date.now(),
+{
+method: 'GET',
+cache: 'no-store'
+}
+);
+
+
+if (!res.ok) {
+
+throw new Error(
+'HTTP ' + res.status
+);
+
+}
+
+
+const data =
+await res.json();
+
+
+if (
+!data.ok ||
+!Array.isArray(data.patients)
+) {
+
+throw new Error(
+data.error ||
+'Invalid response'
+);
+
+}
+
+
+const incoming =
+data.patients;
+
+
+const oldSignature =
+JSON.stringify(patients);
+
+const newSignature =
+JSON.stringify(incoming);
+
+
+if (
+oldSignature !== newSignature
+) {
+
+patients =
+incoming;
+
+
+localStorage.setItem(
+'clinic_patients',
+JSON.stringify(patients)
+);
+
+
+renderNurseTodayList();
+renderDoctorQueue();
+renderPatientArchive();
+
+
+if (activePatientId) {
+
+const active =
+patients.find(
+x =>
+String(x.id) ===
+String(activePatientId)
+);
+
+
+if (active) {
+
+selectPatientForExam(
+active.id
+);
+
+}
+
+}
+
+}
+
+
+cloudSyncReady = true;
+
+}
+
+catch (err) {
+
+console.debug(
+'Realtime refresh skipped:',
+err
+);
+
+}
+
+finally {
+
+cloudPollBusy = false;
+
+}
+
+}
+
+
+function startRealtimeSync() {
+
+refreshFromCloudSilently();
+
+setInterval(
+refreshFromCloudSilently,
+2000
+);
+
+}
+
+
+/* =====================================================
+   NURSE LIST
+   ===================================================== */
+
+function renderNurseTodayList() {
+
+const container =
+document.getElementById(
+'nurseTodayList'
+);
+
+const badge =
+document.getElementById(
+'nurseCountBadge'
+);
+
+
+badge.innerText =
+patients.length;
+
+
+if (!patients.length) {
+
+container.innerHTML = `
+<p class="text-xs text-slate-400 text-center py-6">
+لا يوجد كشوفات مسجلة اليوم
+</p>
+`;
+
+return;
+}
+
+
+container.innerHTML =
+patients
+.map(
+p => `
+
+<div class="p-3 bg-slate-50 border rounded-xl flex items-center justify-between text-xs">
+
+<div>
+
+<div class="font-bold text-slate-800">
+
+${escapeHTML(p.name)}
+
+<span class="text-[10px] text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded-md font-en font-bold">
+
+زيارة ${p.visitsCount || 1}
+
+</span>
+
+</div>
+
+
+<div class="text-[11px] text-slate-500">
+
+${escapeHTML(p.age || '')}
+Yrs •
+
+${p.gender === 'male'
+? 'ذكر'
+: 'أنثى'}
+
+•
+
+${escapeHTML(
+p.phone ||
+'بدون هاتف'
+)}
+
+</div>
+
+</div>
+
+
+<span
+class="px-2.5 py-1 rounded-full font-bold text-[10px]
+${
+p.status === 'waiting'
+? 'bg-amber-100 text-amber-800'
+: 'bg-emerald-100 text-emerald-800'
+}">
+
+${
+p.status === 'waiting'
+? 'في الانتظار'
+: 'تم الكشف'
+}
+
+</span>
+
+</div>
+
+`
+)
+.join('');
+
+}
+
+
+/* =====================================================
+   DOCTOR QUEUE
+   ===================================================== */
+
+function renderDoctorQueue() {
+
+const container =
+document.getElementById(
+'doctorQueueList'
+);
+
+
+const waiting =
+patients.filter(
+p =>
+p.status === 'waiting'
+);
+
+
+document.getElementById(
+'docQueueBadge'
+).innerText =
+waiting.length;
+
+
+document.getElementById(
+'queueBadge'
+).innerText =
+waiting.length;
+
+
+if (!waiting.length) {
+
+container.innerHTML = `
+<p class="text-xs text-slate-400 text-center py-6">
+لا يوجد مرضى في الانتظار
+</p>
+`;
+
+return;
+
+}
+
+
+container.innerHTML =
+waiting
+.map(
+p => `
+
+<div
+onclick="selectPatientForExam('${String(p.id).replace(/'/g, "\\'")}')"
+class="p-3 border rounded-xl cursor-pointer hover:border-teal-500 transition text-xs flex justify-between items-center
+${
+String(activePatientId) ===
+String(p.id)
+? 'bg-teal-50 border-teal-500 shadow-sm'
+: 'bg-slate-50'
+}">
+
+<div>
+
+<strong class="text-slate-800 text-sm block mb-0.5">
+
+${escapeHTML(p.name)}
+
+</strong>
+
+<span class="text-slate-500 text-[11px]">
+
+${escapeHTML(p.age || '')}
+Yrs •
+
+الزيارة:
+(${p.visitsCount || 1})
+
+</span>
+
+</div>
+
+
+<i class="fa-solid fa-chevron-left text-slate-400"></i>
+
+</div>
+
+`
+)
+.join('');
+
+}
+
+
+/* =====================================================
+   SELECT PATIENT
+   ===================================================== */
+
+function selectPatientForExam(id) {
+
+activePatientId = id;
+
+
+const p =
+patients.find(
+x =>
+String(x.id) ===
+String(id)
+);
+
+
+if (!p) {
+return;
+}
+
+
+document
+.getElementById(
+'noPatientSelectedState'
+)
+.classList.add('hidden');
+
+
+document
+.getElementById(
+'activePatientForm'
+)
+.classList.remove('hidden');
+
+
+document.getElementById(
+'doc_active_name'
+).innerText =
+p.name || '';
+
+
+document.getElementById(
+'doc_active_age'
+).innerText =
+p.age || '';
+
+
+document.getElementById(
+'doc_active_gender'
+).innerText =
+p.gender === 'male'
+? 'ذكر'
+: 'أنثى';
+
+
+document.getElementById(
+'doc_active_phone'
+).innerText =
+p.phone || '--';
+
+
+document.getElementById(
+'doc_active_visit_tag'
+).innerText =
+`الزيارة رقم: ${p.visitsCount || 1}`;
+
+
+document.getElementById(
+'doc_active_weight'
+).innerText =
+`${p.vitals?.weight || '--'} kg`;
+
+
+document.getElementById(
+'doc_active_height'
+).innerText =
+`${p.vitals?.height || '--'} cm`;
+
+
+document.getElementById(
+'doc_active_temp'
+).innerText =
+`${p.vitals?.temp || '--'} °C`;
+
+
+document.getElementById(
+'doc_history'
+).value =
+p.history || '';
+
+
+document.getElementById(
+'doc_diagnosis'
+).value =
+p.diagnosis || '';
+
+
+document.getElementById(
+'medicationsContainer'
+).innerHTML = '';
+
+
+(p.medications || [])
+.forEach(
+m =>
+addMedicationRow(m)
+);
+
+
+if (
+!p.medications ||
+!p.medications.length
+) {
+
+addMedicationRow();
+
+}
+
+
+document.getElementById(
+'labsContainer'
+).innerHTML = '';
+
+
+(p.labs || [])
+.forEach(
+l =>
+addLabRow(l)
+);
+
+
+if (
+!p.labs ||
+!p.labs.length
+) {
+
+addLabRow();
+
+}
+
+
+renderDoctorQueue();
+
+}
+
+
+/* =====================================================
+   MEDICATION
+   ===================================================== */
+
+function addMedicationRow(data = {}) {
+
+const container =
+document.getElementById(
+'medicationsContainer'
+);
+
+
+const row =
+document.createElement('div');
+
+
+row.className =
+"med-row grid grid-cols-12 gap-2 bg-slate-50 p-2 border rounded-xl items-center text-xs";
+
+
+row.innerHTML = `
+
+<input
+type="text"
+value="${escapeAttribute(data.name || '')}"
+placeholder="اسم الدواء"
+class="med-name col-span-5 p-2 border rounded-lg font-en outline-none bg-white">
+
+
+<input
+type="text"
+value="${escapeAttribute(data.dose || '')}"
+placeholder="1 قرص"
+class="med-dose col-span-3 p-2 border rounded-lg outline-none bg-white text-center">
+
+
+<input
+type="text"
+value="${escapeAttribute(data.duration || '')}"
+placeholder="كل 12 ساعة"
+class="med-duration col-span-3 p-2 border rounded-lg outline-none bg-white text-center">
+
+
+<button
+type="button"
+onclick="this.closest('.med-row').remove()"
+class="col-span-1 text-rose-500 text-center">
+
+<i class="fa-solid fa-trash"></i>
+
+</button>
+
+`;
+
+
+container.appendChild(row);
+
+}
+
+
+/* =====================================================
+   LAB
+   ===================================================== */
+
+function addLabRow(data = {}) {
+
+const container =
+document.getElementById(
+'labsContainer'
+);
+
+
+const row =
+document.createElement('div');
+
+
+row.className =
+"lab-row flex gap-2 bg-slate-50 p-2 border rounded-xl text-xs";
+
+
+row.innerHTML = `
+
+<input
+type="text"
+value="${escapeAttribute(data.testName || '')}"
+placeholder="اسم التحليل أو الأشعة"
+class="lab-name flex-1 p-2 border rounded-lg font-en outline-none bg-white">
+
+
+<button
+type="button"
+onclick="this.closest('.lab-row').remove()"
+class="text-rose-500 p-2">
+
+<i class="fa-solid fa-trash"></i>
+
+</button>
+
+`;
+
+
+container.appendChild(row);
+
+}
+
+
+/* =====================================================
+   SAVE EXAM
+   ===================================================== */
+
+async function saveExamRecord() {
+
+if (!activePatientId) {
+
+showToast(
+'⚠️ اختر المريض أولاً.'
+);
+
+return null;
+
+}
+
+
+const p =
+patients.find(
+x =>
+String(x.id) ===
+String(activePatientId)
+);
+
+
+if (!p) {
+
+showToast(
+'⚠️ لم يتم العثور على المريض.'
+);
+
+return null;
+
+}
+
+
+const meds = [];
+
+
+document
+.querySelectorAll('.med-row')
+.forEach(
+r => {
+
+const name =
+r.querySelector(
+'.med-name'
+).value.trim();
+
+
+const dose =
+r.querySelector(
+'.med-dose'
+).value.trim();
+
+
+const duration =
+r.querySelector(
+'.med-duration'
+).value.trim();
+
+
+if (name) {
+
+meds.push({
+name,
+dose,
+duration
+});
+
+}
+
+}
+);
+
+
+const labs = [];
+
+
+document
+.querySelectorAll('.lab-row')
+.forEach(
+r => {
+
+const testName =
+r.querySelector(
+'.lab-name'
+).value.trim();
+
+
+if (testName) {
+
+labs.push({
+testName
+});
+
+}
+
+}
+);
+
+
+p.history =
+document
+.getElementById(
+'doc_history'
+)
+.value
+.trim();
+
+
+p.diagnosis =
+document
+.getElementById(
+'doc_diagnosis'
+)
+.value
+.trim();
+
+
+p.medications =
+meds;
+
+
+p.labs =
+labs;
+
+
+p.status =
+'completed';
+
+
+saveData();
+
+
+const cloudResult =
+await syncPatientToGoogleSheet(p);
+
+
+renderDoctorQueue();
+renderNurseTodayList();
+renderPatientArchive();
+
+
+if (cloudResult) {
+
+showToast(
+'✅ تم حفظ الكشف والروشتة والتشخيص في Google بنجاح!'
+);
+
+} else {
+
+showToast(
+'⚠️ تم حفظ الكشف محليًا، لكن تعذر المزامنة مع Google.'
+);
+
+}
+
+
+return cloudResult;
+
+}
+
+
+/* =====================================================
+   PREPARE PRINT DATA
+   ===================================================== */
+
+function preparePrescriptionData(patient) {
+
+if (!patient) {
+return false;
+}
+
+
+document.getElementById(
+'rx_patient_name'
+).textContent =
+patient.name || '';
+
+
+document.getElementById(
+'rx_patient_age'
+).textContent =
+patient.age || '';
+
+
+document.getElementById(
+'rx_date'
+).textContent =
+new Date().toLocaleDateString('ar-EG');
+
+
+let contentHTML = '';
+
+
+if (
+patient.medications &&
+patient.medications.length > 0
+) {
+
+contentHTML += `
+<div class="rx-section-title">
+الأدوية والعلاج الموصوف:
+</div>
+`;
+
+
+patient.medications.forEach(
+(m, idx) => {
+
+contentHTML += `
+
+<div class="rx-med">
+
+<div class="rx-med-name">
+
+${idx + 1}.
+${escapeHTML(m.name || '')}
+
+</div>
+
+
+<div class="rx-med-detail">
+
+${escapeHTML(m.dose || '')}
+
+${
+m.duration
+? ' — ' +
+escapeHTML(m.duration)
+: ''
+}
+
+</div>
+
+</div>
+
+`;
+
+}
+);
+
+}
+
+
+if (
+patient.labs &&
+patient.labs.length > 0
+) {
+
+contentHTML += `
+<div class="rx-section-title">
+الفحوصات والتحاليل المطلوبة:
+</div>
+`;
+
+
+patient.labs.forEach(
+l => {
+
+contentHTML += `
+
+<div class="rx-lab-item">
+
+•
+${escapeHTML(l.testName || '')}
+
+</div>
+
+`;
+
+}
+);
+
+}
+
+
+document.getElementById(
+'rx_content_body'
+).innerHTML =
+contentHTML;
+
+
+return true;
+
+}
+
+
+/* =====================================================
+   PREPARE PREVIEW
+   ===================================================== */
+
+function preparePrescriptionPreview(patient) {
+
+document.getElementById(
+'preview_patient_name'
+).textContent =
+patient.name || '';
+
+
+document.getElementById(
+'preview_patient_age'
+).textContent =
+patient.age || '';
+
+
+document.getElementById(
+'preview_date'
+).textContent =
+new Date().toLocaleDateString('ar-EG');
+
+
+let contentHTML = '';
+
+
+if (
+patient.medications &&
+patient.medications.length > 0
+) {
+
+contentHTML += `
+
+<div style="
+font-weight:900;
+font-size:20px;
+margin-top:6mm;
+margin-bottom:3mm;
+text-decoration:underline;
+">
+
+الأدوية والعلاج الموصوف:
+
+</div>
+
+`;
+
+
+patient.medications.forEach(
+(m, idx) => {
+
+contentHTML += `
+
+<div style="
+margin-bottom:5mm;
+">
+
+<div style="
+font-weight:900;
+font-size:20px;
+line-height:1.35;
+direction:ltr;
+text-align:left;
+">
+
+${idx + 1}.
+${escapeHTML(m.name || '')}
+
+</div>
+
+
+<div style="
+font-size:17px;
+line-height:1.4;
+font-weight:800;
+">
+
+${escapeHTML(m.dose || '')}
+
+${
+m.duration
+? ' — ' +
+escapeHTML(m.duration)
+: ''
+}
+
+</div>
+
+</div>
+
+`;
+
+}
+);
+
+}
+
+
+if (
+patient.labs &&
+patient.labs.length > 0
+) {
+
+contentHTML += `
+
+<div style="
+font-weight:900;
+font-size:20px;
+margin-top:6mm;
+margin-bottom:3mm;
+text-decoration:underline;
+">
+
+الفحوصات والتحاليل المطلوبة:
+
+</div>
+
+`;
+
+
+patient.labs.forEach(
+l => {
+
+contentHTML += `
+
+<div style="
+font-weight:900;
+font-size:18px;
+line-height:1.4;
+margin-bottom:3mm;
+">
+
+•
+${escapeHTML(l.testName || '')}
+
+</div>
+
+`;
+
+}
+);
+
+}
+
+
+document.getElementById(
+'preview_content_body'
+).innerHTML =
+contentHTML;
+
+}
+
+
+/* =====================================================
+   PREVIEW
+   ===================================================== */
+
+async function showPrescriptionPreview() {
+
+if (!activePatientId) {
+
+showToast(
+'⚠️ اختر المريض أولاً.'
+);
+
+return;
+
+}
+
+
+await saveExamRecord();
+
+
+const patient =
+patients.find(
+p =>
+String(p.id) ===
+String(activePatientId)
+);
+
+
+if (!patient) {
+
+showToast(
+'⚠️ لم يتم العثور على المريض.'
+);
+
+return;
+
+}
+
+
+preparePrescriptionData(patient);
+
+preparePrescriptionPreview(patient);
+
+
+document
+.getElementById(
+'prescriptionPreviewModal'
+)
+.classList.remove('hidden');
+
+
+document.body.style.overflow =
+'hidden';
+
+}
+
+
+/* =====================================================
+   CLOSE PREVIEW
+   ===================================================== */
+
+function closePrescriptionPreview() {
+
+document
+.getElementById(
+'prescriptionPreviewModal'
+)
+.classList.add('hidden');
+
+
+document.body.style.overflow =
+'';
+
+}
+
+
+/* =====================================================
+   PRINT TEXT ONLY
+   ===================================================== */
+
+async function printPrescriptionTextOnly() {
+
+if (!activePatientId) {
+
+showToast(
+'⚠️ اختر المريض أولاً.'
+);
+
+return;
+
+}
+
+
+await saveExamRecord();
+
+
+const patient =
+patients.find(
+p =>
+String(p.id) ===
+String(activePatientId)
+);
+
+
+if (!patient) {
+return;
+}
+
+
+preparePrescriptionData(patient);
+
+
+/*
+   إزالة PDF mode
+*/
+document.body.classList.remove(
+'print-pdf'
+);
+
+
+/*
+   تفعيل text-only
+*/
+document.body.classList.add(
+'print-text-only'
+);
+
+
+const printTemplate =
+document.getElementById(
+'prescription-template-print'
+);
+
+
+printTemplate.style.display =
+'block';
+
+
+/*
+   إغلاق الـPreview أثناء الطباعة
+*/
+closePrescriptionPreview();
+
+
+/*
+   فتح نافذة الطباعة
+*/
+setTimeout(
+() => {
+
+window.print();
+
+},
+100
+);
+
+
+/*
+   تنظيف بعد الطباعة
+*/
+setTimeout(
+() => {
+
+document.body.classList.remove(
+'print-text-only'
+);
+
+printTemplate.style.display =
+'none';
+
+},
+1500
+);
+
+}
+
+
+/* =====================================================
+   SAVE PDF
+   ===================================================== */
+
+async function savePrescriptionAsPDF() {
+
+if (!activePatientId) {
+
+showToast(
+'⚠️ اختر المريض أولاً.'
+);
+
+return;
+
+}
+
+
+await saveExamRecord();
+
+
+const patient =
+patients.find(
+p =>
+String(p.id) ===
+String(activePatientId)
+);
+
+
+if (!patient) {
+return;
+}
+
+
+preparePrescriptionData(patient);
+
+preparePrescriptionPreview(patient);
+
+
+/*
+   إزالة text-only
+*/
+document.body.classList.remove(
+'print-text-only'
+);
+
+
+/*
+   تفعيل PDF mode
+*/
+document.body.classList.add(
+'print-pdf'
+);
+
+
+const printTemplate =
+document.getElementById(
+'prescription-template-print'
+);
+
+
+printTemplate.style.display =
+'block';
+
+
+closePrescriptionPreview();
+
+
+setTimeout(
+() => {
+
+window.print();
+
+},
+100
+);
+
+
+setTimeout(
+() => {
+
+document.body.classList.remove(
+'print-pdf'
+);
+
+printTemplate.style.display =
+'none';
+
+},
+1500
+);
+
+}
+
+
+/*
+   توافق مع أي كود قديم يستدعي
+   triggerUnifiedPrint()
+*/
+async function triggerUnifiedPrint() {
+
+await printPrescriptionTextOnly();
+
+}
+
+
+/* =====================================================
+   ARCHIVE
+   ===================================================== */
+
+function renderPatientArchive() {
+
+const body =
+document.getElementById(
+'patientArchiveTableBody'
+);
+
+
+if (!patients.length) {
+
+body.innerHTML = `
+
+<tr>
+
+<td
+colspan="7"
+class="text-center py-6 text-slate-400">
+
+لا يوجد سجلات أرشفة
+
+</td>
+
+</tr>
+
+`;
+
+return;
+
+}
+
+
+body.innerHTML =
+patients
+.map(
+p => `
+
+<tr class="hover:bg-slate-50 transition">
+
+<td class="p-3 font-bold text-slate-800">
+
+${escapeHTML(p.name || '')}
+
+</td>
+
+
+<td class="p-3 text-slate-600">
+
+${escapeHTML(p.age || '')}
+
+Yrs
+
+(
+${
+p.gender === 'male'
+? 'ذكر'
+: 'أنثى'
+}
+)
+
+</td>
+
+
+<td class="p-3">
+
+<span
+class="bg-teal-50 text-teal-700 font-bold px-2 py-0.5 rounded-full text-[11px] font-en">
+
+C
+${p.visitsCount || 1}
+
+</span>
+
+</td>
+
+
+<td class="p-3 font-en text-slate-600">
+
+${escapeHTML(p.phone || '--')}
+
+</td>
+
+
+<td class="p-3 font-en text-slate-500">
+
+${escapeHTML(p.dateFormatted || '')}
+
+</td>
+
+
+<td class="p-3 font-en font-semibold text-teal-700">
+
+${escapeHTML(p.diagnosis || '--')}
+
+</td>
+
+
+<td class="p-3 text-center">
+
+<div class="flex items-center justify-center gap-2">
+
+<button
+onclick="selectPatientForExam('${String(p.id).replace(/'/g, "\\'")}'); switchTab('doctor');"
+class="bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold px-3 py-1 rounded-xl text-xs transition">
+
+عرض الكشف
+
+</button>
+
+
+<button
+onclick="renewPatientExam('${String(p.id).replace(/'/g, "\\'")}')"
+class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-xl text-xs transition">
+
+تجديد الكشف
+
+</button>
+
+</div>
+
+</td>
+
+</tr>
+
+`
+)
+.join('');
+
+}
+
+
+/* =====================================================
+   SEARCH
+   ===================================================== */
+
+function filterArchiveTable() {
+
+const q =
+document
+.getElementById(
+'archiveSearchInput'
+)
+.value
+.toLowerCase();
+
+
+const rows =
+document.querySelectorAll(
+'#patientArchiveTableBody tr'
+);
+
+
+rows.forEach(
+r => {
+
+r.style.display =
+r.innerText
+.toLowerCase()
+.includes(q)
+? ''
+: 'none';
+
+}
+);
+
+}
+
+
+/* =====================================================
+   LOCAL SAVE
+   ===================================================== */
+
+function saveData() {
+
+localStorage.setItem(
+'clinic_patients',
+JSON.stringify(patients)
+);
+
+}
+
+
+/* =====================================================
+   TOAST
+   ===================================================== */
+
+function showToast(msg) {
+
+const t =
+document.createElement('div');
+
+
+const isWarning =
+String(msg).startsWith('⚠️') ||
+String(msg).startsWith('❌');
+
+
+t.className =
+"fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-2xl z-[200] flex items-center gap-2 border border-slate-700";
+
+
+t.innerHTML = `
+
+<i class="fa-solid ${
+isWarning
+? 'fa-triangle-exclamation text-amber-400'
+: 'fa-circle-check text-emerald-400'
+}"></i>
+
+${escapeHTML(msg)}
+
+`;
+
+
+document.body.appendChild(t);
+
+
+setTimeout(
+() => t.remove(),
+4500
+);
+
+}
+
+
+/* =====================================================
+   SECURITY HELPERS
+   ===================================================== */
+
+function escapeHTML(value) {
+
+return String(value ?? '')
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+.replace(/"/g, '&quot;')
+.replace(/'/g, '&#039;');
+
+}
+
+
+function escapeAttribute(value) {
+
+return String(value ?? '')
+.replace(/&/g, '&amp;')
+.replace(/"/g, '&quot;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;');
+
+}
+
+
+/* =====================================================
+   START
+   ===================================================== */
+
+window.addEventListener(
+'DOMContentLoaded',
+async () => {
+
+renderNurseTodayList();
+
+renderDoctorQueue();
+
+renderPatientArchive();
+
+
+await loadPatientsFromGoogleSheet();
+
+
+startRealtimeSync();
+
+}
+);
+
+</script>
 
 </body>
 </html>
